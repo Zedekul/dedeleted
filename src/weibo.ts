@@ -115,13 +115,13 @@ const WeiboAPI = "https://m.weibo.cn/statuses/show?id="
 const getCookies = (cookieJar: CookieJar) => cookieJar.getCookieString(WeiboURL)
 
 const getWeibo = async (
-  url: string, ctx: BackupContext,
+  postID: string, ctx: BackupContext,
   cookieJar: CookieJar
 ): Promise<WeiboDetail> => {
   let response: { ok: number, data: WeiboDetail }
   try {
     const t = await request(
-      url, "GET", await cookieJar.getCookieString(WeiboURL), {
+      WeiboAPI + postID, "GET", await cookieJar.getCookieString(WeiboURL), {
         headers: {
           "Content-Type": "application/json;charset=UTF-8"
         }
@@ -305,7 +305,7 @@ const backup = async (
   }
   const cookieJar = await getCookieJar(WeiboURL, options)
   const weibo = await getWeibo(
-    url, ctx,
+    postID, ctx,
     cookieJar
   )
   return await backupWeibo(weibo, cookieJar, ctx)

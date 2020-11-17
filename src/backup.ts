@@ -1,9 +1,7 @@
-import { v4 as uuid } from "uuid"
-
 import {
   BackupOptions, BackupResult,
   BackupContext, DedeletedError,
-  BackupSources, SourceType, getSourceType
+  BackupSources, getSourceType
 } from "./types"
 
 import {
@@ -15,11 +13,7 @@ import {
   TelegraphUploadAPI,
   uploadFile
 } from "./telegraph"
-import { downloadFile } from "./request"
 import { UploadFunction } from "./utils"
-import FormData from "form-data"
-import fetch from "node-fetch"
-import { Readable } from "stream"
 
 
 export const backup = (
