@@ -10,6 +10,7 @@ export class DedeletedError extends Error {
   }
 
   public isDedeletedError = true
+  public isPrivate = false
 }
 
 export interface BackupOptions {
