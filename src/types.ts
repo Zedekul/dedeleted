@@ -1,7 +1,7 @@
 import { Stream } from "stream"
 
 import { TelegraphAccount, TelegraphPage } from "./telegraph"
-import { Weibo } from "./weibo"
+import { Weibo, WeiboURL } from "./weibo"
 import { UploadFunction } from "./utils"
 
 export class DedeletedError extends Error {
@@ -70,5 +70,16 @@ export const getSourceType = (
     if (source.testURL(url, ctx)) {
       return key
     }
+  }
+}
+
+export const getCookieURL = (sourceType: string): string | undefined => {
+  switch (sourceType) {
+    case "weibo":
+      return WeiboURL
+    case "zhihu":
+      return "https://www.zhihu.com/"
+    default:
+      return undefined
   }
 }

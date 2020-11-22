@@ -109,7 +109,7 @@ export interface WeiboDetail {
   }
 }
 
-const WeiboURL = "https://m.weibo.cn/"
+export const WeiboURL = "https://m.weibo.cn/"
 const WeiboAPI = "https://m.weibo.cn/statuses/show?id="
 
 const getCookies = (cookieJar: CookieJar) => cookieJar.getCookieString(WeiboURL)
@@ -234,7 +234,7 @@ const backupWeibo = async (
   const reposted = weibo.retweeted_status === undefined
     ? undefined
     : await backupWeibo(weibo.retweeted_status, cookieJar, ctx)
-  const source = `https://www.weibo.com/${ weibo.user.id }/${ weibo.id }`
+  const source = `https://www.weibo.com/${ weibo.user.id }/${ weibo.bid }`
 
   const { content, filesToUpload, video } = createTelegraphContent(weibo)
   if (reposted !== undefined) {
@@ -260,15 +260,15 @@ const backupWeibo = async (
     title: `微博存档：${ weibo.bid }`,
     authorName: weibo.user.screen_name,
     authorURL: `https://www.weibo.com/${ weibo.user.id }`
-  }, await getCookies(cookieJar), ctx.uploadFallback)
+  }, await getCookies(cookieJar), `wb-${weibo.bid}`, ctx.uploadFallback)
 
   const cookies = await getCookies(cookieJar)
   const getVideo = video === undefined
     ? async () => undefined
-    : async () => await downloadFile(video, cookies)
+    : async () => await downloadFile(video!, cookies)
 
   const result: BackupResult = {
-    id: weibo.bid,
+    id: `wb-${weibo.bid}`,
     type: "weibo",
     source,
     telegraphPage: page,

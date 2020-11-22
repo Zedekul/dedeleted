@@ -30,14 +30,15 @@ export const backup = (
 }
 
 export const uploadPage = async (
-  account: TelegraphAccount, backupContent: TelegraphContent, cookies: string,
+  account: TelegraphAccount, backupContent: TelegraphContent,
+  cookies: string, filePrefix: string,
   uploadFallback?: UploadFunction
 ): Promise<TelegraphPage> => {
   const { content, filesToUpload } = backupContent
   const title = backupContent.title === undefined ? "Untitled" : backupContent.title
   const authorName = backupContent.authorName === undefined ? account.authorName : backupContent.authorName
   const authorURL = backupContent.authorURL === undefined ? account.authorURL : backupContent.authorURL
-  const files = (await Promise.all(filesToUpload.map(async (x) => {
+  const files = (await Promise.all(filesToUpload.map(async (x, index) => {
     if (x.attrs === undefined) {
       return
     }
@@ -48,7 +49,8 @@ export const uploadPage = async (
     if (url === undefined) {
       return
     }
-    const file = await uploadFile(url, cookies, uploadFallback)
+    const id = `${ filePrefix }-${ index + 1 }`
+    const file = await uploadFile(url, cookies, id, uploadFallback)
     if (isHref) {
       x.attrs!.href = file.path
     } else {
