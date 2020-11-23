@@ -268,7 +268,7 @@ const backupWeibo = async (
   const getVideo = async () => video === undefined ? undefined : await downloadFile(video, cookies)
 
   const result: BackupResult = {
-    id: `wb-${ weibo.bid }-${ uuid() }`,
+    id: `wb-${ weibo.bid }${ ctx.force ? `-${ uuid() }` : "" }`,
     type: "weibo",
     source,
     telegraphPage: page,
@@ -302,7 +302,7 @@ const backup = async (
   const postID = getPostID(url, ctx.regexMatches)
   let existing
   if (options.checkExisting !== undefined) {
-    existing = await options.checkExisting(postID)
+    existing = await options.checkExisting(`wb-${ postID }`)
     if (existing !== undefined && !ctx.force) {
       return existing
     }
