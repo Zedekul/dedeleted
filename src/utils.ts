@@ -7,32 +7,37 @@ import S3 from "aws-sdk/clients/s3"
 import FileType from "file-type"
 import { CookieJar } from "tough-cookie"
 
-import { BackupOptions } from "./types"
+import { BackupOptions, SourceType } from "./types"
 import { HTMLElement, Node as ParsedNode } from "node-html-parser"
-import { TelegraphContentNode, TelegraphContentNodeElement, TelegraphFile } from "./telegraph"
+import { TelegraphContentNode, TelegraphContentNodeElement } from "./telegraph"
 
 AWS.config.apiVersions = {
   s3: "2006-03-01"
 }
 
 export const getCookieJar = async (
-  url: string, options?: BackupOptions
-): Promise<CookieJar> => {
-  const cookieJar = new CookieJar()
+  sourceType: SourceType, options?: BackupOptions
+): Promise<CookieJar | undefined> => {
   if (options !== undefined && options.cookies !== undefined) {
-    const cookies = options.cookies.split(/;/)
-    for (const cookie of cookies) {
-      await cookieJar.setCookie(cookie, url)
+    const serialized = options.cookies[sourceType]
+    if (serialized !== undefined) {
+      return await CookieJar.deserialize(serialized)
     }
   }
-  return cookieJar
+  return new CookieJar()
 }
+
+export const getCookies = async (
+  url: string,
+  cookieJar?: CookieJar,
+): Promise<string | undefined> =>
+  cookieJar === undefined ? undefined : await cookieJar.getCookieString(url)
 
 export type UploadFunction = (file: Readable, id: string) => Promise<string>
 
 export async function uploadFileS3(
   file: string | Readable, pathToUpload: string,
-  accessPoint: string, accountID: string, bucketName: string,
+  accessPoint: string, accountID: string, bucket: string,
   region = "us-west-2",
   s3Options?: any
 ): Promise<string> {
@@ -53,25 +58,23 @@ export async function uploadFileS3(
     Object.assign(params, s3Options)
   }
   const uploaded = await s3.upload(params).promise()
-  return `https://${ bucketName }.s3-${ region }.amazonaws.com/${ pathToUpload }`
+  return `https://${ bucket }.s3-${ region }.amazonaws.com/${ pathToUpload }`
 }
 
-
 export const createUploadFallback = (
-  pathPrefix: string, accessPoint: string, accountID: string, bucketName: string, region?: string
+  pathPrefix: string, accessPoint: string, accountID: string, bucket: string, region?: string
 ): UploadFunction => async (file, id) => {
   const stream = await FileType.stream(file)
   const pathname = path.join(pathPrefix, `tf-${ id }${
     stream.fileType === undefined ? "" : `.${ stream.fileType.ext }`
   }`)
   return await uploadFileS3(
-    stream, pathname, accessPoint, bucketName, accountID, region,
+    stream, pathname, accessPoint, bucket, accountID, region,
     stream.fileType === undefined ? undefined : {
       ContentType: stream.fileType.mime
     }
   )
 }
-
 
 const flattenNodes = (arrayOfNodes: TelegraphContentNode[][]): TelegraphContentNode[] => {
   return ([] as TelegraphContentNode[]).concat(...arrayOfNodes)

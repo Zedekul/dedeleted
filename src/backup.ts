@@ -16,22 +16,22 @@ import {
 import { UploadFunction } from "./utils"
 
 
-export const backup = (
+export const backup = async (
   url: string, options: BackupOptions = {}
 ): Promise<BackupResult> => {
   const ctx: BackupContext = {}
   ctx.account = getAccount(options.telegraphAccount)
   const sourceType = getSourceType(url, options, ctx)
   if (sourceType === undefined) {
-    throw new DedeletedError("Unsupported source.")
+    throw new DedeletedError("不支持的 URL。")
   }
   const handler = BackupSources[sourceType].backup
-  return handler(url, options, ctx)
+  return await handler(url, options, ctx)
 }
 
 export const uploadPage = async (
   account: TelegraphAccount, backupContent: TelegraphContent,
-  cookies: string, filePrefix: string,
+  cookies?: string, filePrefix = "file",
   uploadFallback?: UploadFunction
 ): Promise<TelegraphPage> => {
   const { content, filesToUpload } = backupContent

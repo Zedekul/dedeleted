@@ -1,12 +1,14 @@
 import { Readable } from "stream"
 
-import { UploadFunction } from "./utils"
-import { downloadFile, request } from "./request"
-import { DedeletedError } from "./types"
 import { v4 as uuid } from "uuid"
 import FormData from "form-data"
 import fetch from "node-fetch"
 
+import { UploadFunction } from "./utils"
+import { downloadFile, request } from "./request"
+import { DedeletedError } from "./types"
+
+export const TelegraphURL = "https://telegra.ph/"
 export const TelegraphAPI = "https://api.telegra.ph/"
 export const TelegraphUploadAPI = "https://telegra.ph/upload"
 
@@ -100,7 +102,7 @@ const getDefaultImage = (source: string): TelegraphFile => ({
 })
 
 export const uploadFile = async (
-  source: string, cookie: string, id: string = uuid(), fallback?: UploadFunction
+  source: string, cookie?: string, id: string = uuid(), fallback?: UploadFunction
 ): Promise<TelegraphFile> => {
   let stream
   try {

@@ -1,7 +1,8 @@
 import { HTMLElement, parse as parseHTML } from "node-html-parser"
 import { CookieJar } from "tough-cookie"
+import { v4 as uuid } from "uuid"
 
-import { createUploadFallback, getCookieJar } from "./utils"
+import { createUploadFallback, getCookieJar, getCookies } from "./utils"
 import { downloadFile, request } from "./request"
 import {
   BackupOptions, BackupResult,
@@ -112,29 +113,30 @@ export interface WeiboDetail {
 export const WeiboURL = "https://m.weibo.cn/"
 const WeiboAPI = "https://m.weibo.cn/statuses/show?id="
 
-const getCookies = (cookieJar: CookieJar) => cookieJar.getCookieString(WeiboURL)
-
 const getWeibo = async (
   postID: string, ctx: BackupContext,
-  cookieJar: CookieJar
+  cookieJar?: CookieJar
 ): Promise<WeiboDetail> => {
   let response: { ok: number, data: WeiboDetail }
   try {
     const t = await request(
-      WeiboAPI + postID, "GET", await cookieJar.getCookieString(WeiboURL), {
+      WeiboAPI + postID, "GET",
+      await getCookies(WeiboAPI, cookieJar),
+      {
         headers: {
           "Content-Type": "application/json;charset=UTF-8"
         }
-      }, async (cookie: string) => {
+      },
+      cookieJar === undefined ? undefined : async (cookie: string) => {
         await cookieJar.setCookie(cookie, WeiboURL)
       }
     )
     response = await t.json()
   } catch (e) {
-    throw new DedeletedError("Cannot access weibo.", e)
+    throw new DedeletedError("无法访问微博。可能是由于没有登录状态或登录状态已失效。", e)
   }
   if (response.ok !== 1) {
-    throw new DedeletedError("Weibo API broken.")
+    throw new DedeletedError("微博 API 错误。")
   }
   return response.data
 }
@@ -225,7 +227,7 @@ const createTelegraphContent = (weibo: WeiboDetail): TelegraphContent & { video?
 
 const backupWeibo = async (
   weibo: WeiboDetail,
-  cookieJar: CookieJar,
+  cookieJar: CookieJar | undefined,
   ctx: BackupContext
 ): Promise<BackupResult> => {
   if (ctx.account === undefined) {
@@ -260,20 +262,18 @@ const backupWeibo = async (
     title: `微博存档：${ weibo.bid }`,
     authorName: weibo.user.screen_name,
     authorURL: `https://www.weibo.com/${ weibo.user.id }`
-  }, await getCookies(cookieJar), `wb-${weibo.bid}`, ctx.uploadFallback)
+  }, await getCookies(WeiboURL, cookieJar), `wb-${ weibo.bid }`, ctx.uploadFallback)
 
-  const cookies = await getCookies(cookieJar)
-  const getVideo = video === undefined
-    ? async () => undefined
-    : async () => await downloadFile(video!, cookies)
+  const cookies = await getCookies(WeiboURL, cookieJar)
+  const getVideo = async () => video === undefined ? undefined : await downloadFile(video, cookies)
 
   const result: BackupResult = {
-    id: `wb-${weibo.bid}`,
+    id: `wb-${ weibo.bid }-${ uuid() }`,
     type: "weibo",
     source,
     telegraphPage: page,
     getVideo,
-    cookies,
+    cookies: cookieJar,
     data: weibo,
     otherBackup: reposted
   }
@@ -292,18 +292,22 @@ const backup = async (
       // If test is not passed, assume url is a weibo ID.
     }
   }
+  if (options.force !== undefined) {
+    ctx.force = options.force
+  }
   if (options.awsS3Settings !== undefined) {
     const s3 = options.awsS3Settings
-    ctx.uploadFallback = createUploadFallback("/weibo", s3.accessPoint, s3.accountID, s3.bucketName, s3.region)
+    ctx.uploadFallback = createUploadFallback("/weibo", s3.accessPoint, s3.accountID, s3.bucket, s3.region)
   }
   const postID = getPostID(url, ctx.regexMatches)
+  let existing
   if (options.checkExisting !== undefined) {
-    const existing = options.checkExisting(postID)
-    if (existing !== undefined) {
+    existing = await options.checkExisting(postID)
+    if (existing !== undefined && !ctx.force) {
       return existing
     }
   }
-  const cookieJar = await getCookieJar(WeiboURL, options)
+  const cookieJar = await getCookieJar("weibo", options)
   const weibo = await getWeibo(
     postID, ctx,
     cookieJar

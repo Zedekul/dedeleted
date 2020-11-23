@@ -3,6 +3,7 @@ import { Stream } from "stream"
 import { TelegraphAccount, TelegraphPage } from "./telegraph"
 import { Weibo, WeiboURL } from "./weibo"
 import { UploadFunction } from "./utils"
+import { CookieJar } from "tough-cookie"
 
 export class DedeletedError extends Error {
   constructor(m: string, public baseError?: Error) {
@@ -13,40 +14,11 @@ export class DedeletedError extends Error {
   public isPrivate = false
 }
 
-export interface BackupOptions {
-  sourceType?: SourceType
-  cookies?: string
-  checkExisting?: (id: string) => BackupResult | undefined
-  telegraphAccount?: TelegraphAccount
-  awsS3Settings?: {
-    accessPoint: string
-    accountID: string
-    bucketName: string
-    region: string
-  }
-}
-
-export interface BackupResult {
-  id: string
-  type: SourceType
-  source: string
-  telegraphPage: TelegraphPage
-  getVideo: () => Promise<Stream | string | undefined>
-  cookies?: string
-  data: any
-  otherBackup?: BackupResult
-}
-
-export interface BackupContext {
-  regexMatches?: RegExpExecArray
-  account?: TelegraphAccount,
-  uploadFallback?: UploadFunction
-}
-
-export interface BackupSource {
-  key: SourceType
-  testURL: (url: string, ctx?: BackupContext) => boolean
-  backup: (url: string, options?: BackupOptions, ctx?: BackupContext) => Promise<BackupResult>
+export interface AWSS3Settings {
+  accessPoint: string
+  accountID: string
+  bucket: string
+  region: string
 }
 
 export const BackupSources = {
@@ -58,6 +30,43 @@ export type SourceType = keyof typeof BackupSources
 export const AvailableSources: SourceType[] = [
   "weibo"
 ]
+
+export type StoredCookies = {
+  [key in SourceType]?: CookieJar.Serialized
+}
+
+export interface BackupOptions {
+  sourceType?: SourceType
+  cookies?: StoredCookies
+  force?: boolean
+  checkExisting?: (id: string) => Promise<BackupResult | undefined>
+  telegraphAccount?: TelegraphAccount
+  awsS3Settings?: AWSS3Settings
+}
+
+export interface BackupResult {
+  id: string
+  type: SourceType
+  source: string
+  telegraphPage: TelegraphPage
+  getVideo: () => Promise<Stream | string | undefined>
+  cookies?: CookieJar
+  data: any
+  otherBackup?: BackupResult
+}
+
+export interface BackupContext {
+  regexMatches?: RegExpExecArray
+  account?: TelegraphAccount,
+  force?: boolean
+  uploadFallback?: UploadFunction
+}
+
+export interface BackupSource {
+  key: SourceType
+  testURL: (url: string, ctx?: BackupContext) => boolean
+  backup: (url: string, options?: BackupOptions, ctx?: BackupContext) => Promise<BackupResult>
+}
 
 export const getSourceType = (
   url: string, options?: BackupOptions, ctx?: BackupContext
