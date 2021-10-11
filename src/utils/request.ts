@@ -4,7 +4,7 @@ import { Stream } from "stream"
 
 import fetch, { RequestInit, Response } from "node-fetch"
 
-import { DedeletedError } from "./types"
+import { CannotAccess } from "../errors"
 
 export const downloadFile = (
   source: string, cookie?: string
@@ -15,8 +15,8 @@ export const downloadFile = (
       headers: { cookie }
     }, (response) => {
       if (response !== undefined && response.statusCode === 301
-        && response.headers.location!.match(/default.*\.gif/) != null) {
-        return reject(new DedeletedError("Weibo image deleted."))
+        && response.headers.location!.match(/default.*\.gif/) !== null) {
+        return reject(new CannotAccess(source))
       }
       resolve(response)
     })
@@ -45,4 +45,18 @@ export const request = async (
     }
   }
   return response
+}
+
+export const fetchPage = async (
+  url: string,
+  getCookie: (url: string) => Promise<string | undefined>,
+  setCookie: (url: string, cookie: string) => Promise<void>,
+  options: RequestInit = {}
+): Promise<Response> => {
+  return await request(
+      url, "GET",
+      await getCookie(url),
+      options,
+      (c) => setCookie(url, c)
+  )
 }
