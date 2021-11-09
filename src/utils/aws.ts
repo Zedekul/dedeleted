@@ -1,12 +1,12 @@
-import { createReadStream } from "fs"
-import path from "path"
-import { Readable } from "stream"
+import { createReadStream } from "node:fs"
+import path from "node:path"
+import { Readable } from "node:stream"
 
-import AWS from "aws-sdk/global"
-import S3 from "aws-sdk/clients/s3"
+import AWS from "aws-sdk/global.js"
+import S3 from "aws-sdk/clients/s3.js"
 import FileType from "file-type"
 
-import { UploadFunction } from "./types"
+import { UploadFunction } from "./types.js"
 
 export interface AWSS3Settings {
   accessPoint: string

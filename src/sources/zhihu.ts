@@ -1,13 +1,13 @@
-import assert from "assert"
+import assert from "node:assert"
 
 import { parse as parseHTML } from "node-html-parser"
 
-import { CannotAccess, DedeletedError, InvalidFormat } from "../errors"
-import { fetchPage } from "../utils/request"
+import { CannotAccess, DedeletedError, InvalidFormat } from "../errors.js"
+import { getInlines } from "../utils/html.js"
+import { fetchPage } from "../utils/request.js"
 
-import { BaseSource } from "./bases"
-import { BackupContent, BackupOptions } from "./types"
-import { getInlines } from "src/utils/html"
+import { BaseSource } from "./bases.js"
+import { BackupContent, BackupOptions } from "./types.js"
 
 export type ZhihuOptions = {
 } & BackupOptions
@@ -72,7 +72,7 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
         .initialState
       assert(data !== undefined)
     } catch (e) {
-      throw new DedeletedError("Failed to parse data", e)
+      throw new DedeletedError("Failed to parse data", e as Error)
     }
     const entities = data.entities
     if (entities === undefined) {
@@ -106,6 +106,8 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     let title = "知乎备份"
     let content: string | undefined
     let reposted: string | undefined
+    const createdTime = new Date((entity.created || entity.createdTime) * 1000)
+    const updatedTime = new Date((entity.updated || entity.updatedTime) * 1000)
     switch (type) {
       case "answer":
       case "zhuanlan":
@@ -119,6 +121,7 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
         }
         author = entities.users[entity.author]
         content = entity.contentHtml
+        title = `${ author.name } 的想法`
         if (entity.originalPin !== undefined) {
           const originalPin = entity.originalPin
           content += `<br>${originalPin.contentHtml}`
@@ -144,11 +147,22 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     }
     const parsedHTML = parseHTML(content)
     const inlineNodes = getInlines(parsedHTML, options.inlineImages, options.inlineLinks)
+    for (const node of inlineNodes) {
+      if (node.tagName.toLowerCase() === "img") {
+        node.setAttribute(
+          "src",
+          node.getAttribute("data-original") ||
+          node.getAttribute("src") || ""
+        )
+      }
+    }
     return {
       id: options.id,
       title,
       authorName: author.name,
       authorURL: author.url,
+      createdTime,
+      updatedTime,
       source: url,
       parsedHTML,
       inlineNodes,

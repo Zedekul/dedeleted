@@ -1,13 +1,14 @@
-import http from "http"
-import https from "https"
-import { Stream } from "stream"
+import http from "node:http"
+import https from "node:https"
+import { Stream } from "node:stream"
 
 import fetch, { RequestInit, Response } from "node-fetch"
 
-import { CannotAccess } from "../errors"
+import { CannotAccess } from "../errors.js"
 
 export const downloadFile = (
-  source: string, cookie?: string,
+  source: string,
+  cookie?: string
 ): Promise<Stream> => new Promise(
   (resolve, reject) => {
     const get = source.startsWith("https") ? https.get : http.get

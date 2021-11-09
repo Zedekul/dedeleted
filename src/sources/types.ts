@@ -1,9 +1,9 @@
-import { Readable } from "stream"
+import { Readable } from "node:stream"
 
 import { HTMLElement } from "node-html-parser"
 
-import { TelegraphAccount, TelegraphPage } from "../telegraph/types"
-import { AWSS3Settings } from "../utils/aws"
+import { TelegraphAccount, TelegraphPage } from "../telegraph/types.js"
+import { AWSS3Settings } from "../utils/aws.js"
 
 // Some of the options may not work if force=false, since result was cached.
 export interface BackupOptions {
@@ -46,6 +46,8 @@ export interface BackupContent<T = any> {
   title: string
   authorName?: string
   authorURL?: string
+  createdTime: Date
+  updatedTime: Date
   source: string
   parsedHTML: HTMLElement
   inlineNodes: HTMLElement[]

@@ -1,16 +1,18 @@
-import { URL } from "url"
+import { Readable } from "node:stream"
+import { URL } from "node:url"
 
 import { HTMLElement } from "node-html-parser"
 
-import { uploadImage, uploadImageFromSource } from "../telegraph/api"
-import { TelegraphContentNode, TelegraphPage } from "../telegraph/types"
-import { createPages, DefaultTelegraphAccount, domToNodes } from "../telegraph/utils"
-import { downloadFile } from "../utils/request"
-import { UploadFunction } from "../utils/types"
+import { uploadImage, uploadImageFromSource } from "../telegraph/api.js"
+import { TelegraphContentNode, TelegraphPage } from "../telegraph/types.js"
+import { createPages, DefaultTelegraphAccount, domToNodes } from "../telegraph/utils.js"
+import { s3CreateUploadFunction } from "../utils/aws.js"
+import { dateToString } from "../utils/common.js"
+import { getDownloadable } from "../utils/html.js"
+import { downloadFile } from "../utils/request.js"
+import { UploadFunction } from "../utils/types.js"
 
-import { BackupContent, BackupFile, BackupOptions, BackupResult, BackupSource } from "./types"
-import { Readable } from "stream"
-import { s3CreateUploadFunction } from "src/utils/aws"
+import { BackupContent, BackupFile, BackupOptions, BackupResult, BackupSource } from "./types.js"
 
 
 export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) => ({
@@ -93,8 +95,8 @@ export abstract class BaseSource<
     const reposted = options.backupReposted
       ? await Promise.all(raw.reposted.map((x) => this.uploadContent(x, options, fallback)))
       : []
-    let files = await this.uploadInlines(raw.id, raw.inlineNodes, options, fallback)
-    files = files.concat(await this.uploadFiles(raw.id, raw.otherFiles, options, fallback))
+    let files = await this.uploadInlines(raw, options, fallback)
+    files = files.concat(await this.uploadFiles(raw, options, fallback))
     const result: BackupResult<TR> = {
       id: raw.id,
       sourceKey: this.key,
@@ -112,43 +114,53 @@ export abstract class BaseSource<
   }
 
   protected async uploadInlines(
-    id: string, imageNodes: HTMLElement[], options: TO,
+    raw: BackupContent<TR>,
+    options: TO,
     fallback?: UploadFunction
   ): Promise<BackupFile[]> {
-    const files = await Promise.all(imageNodes.map(async (node, i) => {
+    const { source, id, inlineNodes } = raw
+    const files = await Promise.all(inlineNodes.map(async (node, i) => {
       if (node.nodeType !== 1) {
         return
       }
       const tag = node.tagName.toLowerCase()
       if (tag === "img") {
         const src = node.getAttribute("src")
-        if (src !== undefined) {
-          const telegraphFile = await uploadImageFromSource(src, await options.getCookie(src), `${id}-inline-${i}`, fallback)
-          return {
-            type: "image",
-            uploaded: telegraphFile.path
-          } as BackupFile
+        const d = getDownloadable(src, source)
+        if (d === undefined) {
+          return
         }
+        const telegraphFile = await uploadImageFromSource(
+          d,
+          await options.getCookie(d), `${id}-inline-${i}`,
+          fallback
+        )
+        return {
+          type: "image",
+          uploaded: telegraphFile.path
+        } as BackupFile
       } else if (tag === "a" && fallback !== undefined) {
         const href = node.getAttribute("href")
-        if (href !== undefined) {
-          const stream = await downloadFile(href, await options.getCookie(href))
-          const uploaded = await fallback(stream as Readable, `${id}-inline-${i}`)
-          return {
-            type: "file",
-            uploaded
-          } as BackupFile
+        const d = getDownloadable(href, source)
+        if (d === undefined) {
+          return
         }
+        const stream = await downloadFile(d, await options.getCookie(d))
+        const uploaded = await fallback(stream as Readable, `${id}-inline-${i}`)
+        return {
+          type: "file",
+          uploaded
+        } as BackupFile
       }
     }))
     return files.filter((x): x is BackupFile => x !== undefined)
   }
 
   protected async uploadFiles(
-    id: string, files: BackupFile[], options: TO,
+    raw: BackupContent<TR>, options: TO,
     fallback?: UploadFunction
   ): Promise<BackupFile[]> {
-    return await Promise.all(files.map(async (file, i) => {
+    return await Promise.all(raw.otherFiles.map(async (file, i) => {
       switch (file.type) {
         case "video":
           if (!options.uploadVideos) {
@@ -158,7 +170,7 @@ export abstract class BaseSource<
         case "image":
           if (file.download !== undefined) {
             try {
-              file.uploaded = (await uploadImage(file.source, file.download, `${id}-${i}`, fallback)).path
+              file.uploaded = (await uploadImage(file.source, file.download, `${raw.id}-${i}`, fallback)).path
             } catch (e) {
               if (!options.allowMissingContent) {
                 throw e
@@ -170,7 +182,7 @@ export abstract class BaseSource<
         case "file":
           if (fallback !== undefined && file.download !== undefined) {
             try {
-              file.uploaded = await fallback(await file.download(), `${id}-${i}`)
+              file.uploaded = await fallback(await file.download(), `${raw.id}-${i}`)
             } catch (e) {
               if (!options.allowMissingContent) {
                 throw e
@@ -208,7 +220,7 @@ export abstract class BaseSource<
         tag: "a",
         attrs: { href: raw.source },
         children: [raw.source]
-      }]
+      }, `\n发表于：${dateToString(raw.createdTime)}\n更新于：${dateToString(raw.updatedTime)}`]
     })
     if (raw.otherFiles.length > 0) {
       const attachedChildren: TelegraphContentNode[] = ["附件：",]

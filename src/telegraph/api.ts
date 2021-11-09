@@ -1,12 +1,12 @@
-import { Readable, Stream } from "stream"
-import { v4 as uuid } from "uuid"
+import { Readable, Stream } from "node:stream"
 
 import FormData from "form-data"
+import { v4 as uuid } from "uuid"
 
-import { downloadFile, request } from "../utils/request"
-import { UploadFunction } from "../utils/types"
-import { CreateFailed, DedeletedError, UploadFailed } from "../errors"
-import { TelegraphAccount, TelegraphContentNode, TelegraphFile, TelegraphPage } from "./types"
+import { downloadFile, request } from "../utils/request.js"
+import { UploadFunction } from "../utils/types.js"
+import { CreateFailed, DedeletedError, UploadFailed } from "../errors.js"
+import { TelegraphAccount, TelegraphContentNode, TelegraphFile, TelegraphPage } from "./types.js"
 
 const TelegraphAPI = "https://api.telegra.ph/"
 const TelegraphUploadAPI = "https://telegra.ph/upload"
@@ -19,7 +19,10 @@ const getDefaultImage = (source: string): TelegraphFile => ({
 })
 
 export const uploadImageFromSource = (
-  source: string, cookie?: string, id: string = uuid(), fallback?: UploadFunction
+  source: string,
+  cookie?: string,
+  id: string = uuid(),
+  fallback?: UploadFunction
 ): Promise<TelegraphFile> => uploadImage(source, () => downloadFile(source, cookie), id, fallback)
 
 export const uploadImage = async (

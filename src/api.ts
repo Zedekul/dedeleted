@@ -1,5 +1,5 @@
-import { BackupOptions, BackupResult } from "./sources/types"
-import { Zhihu } from "./sources/zhihu"
+import { BackupOptions, BackupResult } from "./sources/types.js"
+import { Zhihu } from "./sources/zhihu.js"
 
 const sources = [
   new Zhihu()

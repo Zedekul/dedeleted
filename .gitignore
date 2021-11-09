@@ -3,3 +3,4 @@ lib/
 build/
 *.swp
 *.bak
+/.env

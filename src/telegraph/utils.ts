@@ -1,17 +1,17 @@
 import { HTMLElement, Node } from "node-html-parser"
 
-import { ConfigError } from "../errors"
-import { createPage } from "./api"
+import { ConfigError } from "../errors.js"
+import { DEFAULT_TELEGRAPH_ACCOUNT_TOKEN } from "../utils/config.js"
 
-import { DOMToNodeHandler, TelegraphAccount, TelegraphContentNode, TelegraphContentNodeElement, TelegraphPage } from "./types"
+import { createPage } from "./api.js"
+import { DOMToNodeHandler, TelegraphAccount, TelegraphContentNode, TelegraphContentNodeElement, TelegraphPage } from "./types.js"
 
 export const DefaultTelegraphAccount: TelegraphAccount = (() => {
-  const token = process.env.DEFAULT_TELEGRAPH_ACCOUNT_TOKEN
-  if (token === undefined) {
+  if (DEFAULT_TELEGRAPH_ACCOUNT_TOKEN === undefined) {
     throw new ConfigError("DEFAULT_TELEGRAPH_ACCOUNT_TOKEN")
   }
   return {
-    accessToken: token,
+    accessToken: DEFAULT_TELEGRAPH_ACCOUNT_TOKEN,
     shortName: "Dedeleted",
     authorName: "Dedeleted",
     authorURL: "https://t.me/DedeletedBot"
@@ -36,7 +36,7 @@ export const domToNodes = <T = any>(
     nodes = domToNodeHandler(dom, ctx)
   }
   if (nodes === undefined) {
-    const tag = dom.tagName.toLowerCase()
+    const tag = dom.tagName == null ? "" : dom.tagName.toLowerCase()
     if (tag === "img") {
       const img = {
         tag,
