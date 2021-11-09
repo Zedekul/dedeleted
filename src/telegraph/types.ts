@@ -31,6 +31,7 @@ export interface TelegraphPage {
   description: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DOMToNodeHandler<T = any> = (
   dom: HTMLElement,
   ctx?: T

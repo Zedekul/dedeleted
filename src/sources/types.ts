@@ -20,11 +20,15 @@ export interface BackupOptions {
   allowMissingContent: boolean
   uploadVideos: boolean
   awsS3Settings: AWSS3Settings | null
+  inlineImages: boolean
+  inlineLinks: boolean
 
   plainText: boolean
   textLengthLimit: number
 
   backupReposted: boolean
+
+  htmlFromBrowser: string | null
 }
 
 export type BackupFileType = "image" | "video" | "file"
@@ -36,8 +40,12 @@ export interface BackupFile {
   download?: () => Promise<Readable>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface BackupContent<T = any> {
   id: string
+  title: string
+  authorName?: string
+  authorURL?: string
   source: string
   parsedHTML: HTMLElement
   inlineNodes: HTMLElement[]
@@ -46,6 +54,7 @@ export interface BackupContent<T = any> {
   reposted: BackupContent[]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface BackupResult<T = any> {
   id: string
   sourceKey: string
@@ -62,5 +71,5 @@ export interface BackupResult<T = any> {
 export interface BackupSource {
   key: string
   testURL(url: string): string | undefined
-  backup(url: string, options?: BackupOptions): Promise<BackupResult>
+  backup(url: string, options?: Partial<BackupOptions>): Promise<BackupResult>
 }

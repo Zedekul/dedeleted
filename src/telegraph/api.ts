@@ -4,10 +4,10 @@ import { v4 as uuid } from "uuid"
 import FormData from "form-data"
 
 import { downloadFile, request } from "../utils/request"
-import { CreateFailed, UploadFailed } from "../errors"
-import { TelegraphAccount, TelegraphContent, TelegraphContentNode, TelegraphFile, TelegraphPage, UploadFunction } from "./types"
+import { UploadFunction } from "../utils/types"
+import { CreateFailed, DedeletedError, UploadFailed } from "../errors"
+import { TelegraphAccount, TelegraphContentNode, TelegraphFile, TelegraphPage } from "./types"
 
-const TelegraphURL = "https://telegra.ph/"
 const TelegraphAPI = "https://api.telegra.ph/"
 const TelegraphUploadAPI = "https://telegra.ph/upload"
 
@@ -30,8 +30,8 @@ export const uploadImage = async (
   let stream
   try {
     stream = await download()
-  } catch (e: any) {
-    if (e.isDedeletedError) {
+  } catch (e) {
+    if ((e as DedeletedError).isDedeletedError) {
       return getDefaultImage(source)
     }
   }
@@ -50,7 +50,7 @@ export const uploadImage = async (
   const response = await request(TelegraphUploadAPI, "POST", undefined, {
     body: form
   })
-  let uploaded = await response.json()
+  let uploaded = await response.json() as { error?: string, [index: number]: { src: string } }
   if (uploaded === undefined || uploaded.error !== undefined) {
     if (fallback === undefined) {
       return getDefaultImage(source)
@@ -76,10 +76,9 @@ export const createPage = async (
     }),
     headers: { "Content-Type": "application/json" }
   })
-  const created = await response.json()
+  const created = await response.json() as { ok: boolean, error?: string, result: TelegraphPage }
   if (created === undefined || !created.ok) {
     throw new CreateFailed(created === undefined ? "telegraph page" : created.error)
-
   }
   const page = created.result as TelegraphPage
   return page

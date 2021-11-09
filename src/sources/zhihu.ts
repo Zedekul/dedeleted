@@ -1,19 +1,22 @@
 import assert from "assert"
-import { URL } from "url"
 
 import { parse as parseHTML } from "node-html-parser"
 
 import { CannotAccess, DedeletedError, InvalidFormat } from "../errors"
-import { TelegraphContentNodeElement } from "../telegraph/types"
-import { fetchPage, request } from "../utils/request"
+import { fetchPage } from "../utils/request"
 
 import { BaseSource } from "./bases"
-import { BackupOptions, BackupResult } from "./types"
+import { BackupContent, BackupOptions } from "./types"
+import { getInlines } from "src/utils/html"
 
 export type ZhihuOptions = {
 } & BackupOptions
 
-const ZhihuURL = "https://www.zhihu.com/"
+export type ZhihuData = {
+  id: string
+  // ...
+}
+
 const ZhihuURLRegex = /^(https?:\/\/)?(.*?\.)?zhihu\.com\/.*$/
 const ZhihuPathRegex = /(?<key>(answer)|(p)|(pin)|(question))\/(?<id>\d*)$/
 type ZhihuTypes = "answer" | "zhuanlan" | "pin" | "question"
@@ -55,13 +58,17 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     }
   }
 
-  async backupInner(url: string, options: ZhihuOptions): Promise<BackupResult> {
-    const response = await fetchPage(url, options.getCookie, options.setCookie)
-    const html = await response.text()
+  async backupInner(url: string, options: ZhihuOptions): Promise<BackupContent<ZhihuData>> {
+    const html = options.htmlFromBrowser || await (await fetchPage(
+      url, options.getCookie, options.setCookie
+    )).text()
     const htmlDOM = parseHTML(html)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data: any
     try {
-      data = JSON.parse(htmlDOM.querySelector("#js-initialData").text)
+      const initialData = htmlDOM.querySelector("#js-initialData")
+      assert(initialData !== null)
+      data = JSON.parse(initialData.text)
         .initialState
       assert(data !== undefined)
     } catch (e) {
@@ -72,6 +79,7 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
       throw new CannotAccess(url)
     }
     const [type, id] = options.id.split("-") as [ZhihuTypes, string]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let entity: any
     switch (type) {
       case "answer":
@@ -91,29 +99,62 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     if (entity === undefined) {
       throw new CannotAccess(url)
     }
+    let author: {
+      name?: string
+      url?: string
+    } = {}
+    let title = "知乎备份"
     let content: string | undefined
     let reposted: string | undefined
     switch (type) {
       case "answer":
       case "zhuanlan":
+        author = entity.author
         content = entity.content
+        title = entity.title || `${ entity.question.title } - ${ author.name } 的回答`
         break
       case "pin":
         if (entity.content.length === 0) {
           throw new CannotAccess(url)
         }
-        content = entity.content[0]
-        reposted = entity.originalPin
-        entity = entities.pins[id]
+        author = entities.users[entity.author]
+        content = entity.contentHtml
+        if (entity.originalPin !== undefined) {
+          const originalPin = entity.originalPin
+          content += `<br>${originalPin.contentHtml}`
+        } else if (entity.content !== undefined && entity.content.length > 1) {
+          const content = entity.content[entity.content.length - 1]
+          if (content.type === "link" && options.backupReposted) {
+            reposted = content.url
+          }
+        }
         break
       case "question":
-        entity = entities.questions[id]
+        author = entity.author
+        title = entity.title
+        content = entity.detail
         break
       default: throw new InvalidFormat(type)
     }
     if (content === undefined) {
       throw new CannotAccess(url)
     }
-    const filesToUpload: TelegraphContentNodeElement[] = []
+    if (reposted != undefined) {
+      // TODO: Backup Reposted
+    }
+    const parsedHTML = parseHTML(content)
+    const inlineNodes = getInlines(parsedHTML, options.inlineImages, options.inlineLinks)
+    return {
+      id: options.id,
+      title,
+      authorName: author.name,
+      authorURL: author.url,
+      source: url,
+      parsedHTML,
+      inlineNodes,
+      otherFiles: [],
+      data: entity,
+      reposted: []
+    }
   }
 }

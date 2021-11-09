@@ -19,11 +19,11 @@ AWS.config.apiVersions = {
   s3: "2006-03-01"
 }
 
-export const uploadFileS3 = async (
+export const s3UploadFile = async (
   file: string | Readable, pathToUpload: string,
   accessPoint: string, accountID: string, bucket: string,
   region = "us-west-2",
-  s3Options?: any
+  s3Options?: Partial<S3.Types.PutObjectRequest>
 ): Promise<string> => {
   const s3 = new S3()
   if (typeof file === "string") {
@@ -41,18 +41,18 @@ export const uploadFileS3 = async (
   if (s3Options !== undefined) {
     Object.assign(params, s3Options)
   }
-  const uploaded = await s3.upload(params).promise()
+  await s3.upload(params).promise()
   return `https://${ bucket }.s3-${ region }.amazonaws.com/${ pathToUpload }`
 }
 
-export const createUploadFunction = (
+export const s3CreateUploadFunction = (
   pathPrefix: string, accessPoint: string, accountID: string, bucket: string, region?: string
 ): UploadFunction => async (file, id) => {
   const stream = await FileType.stream(file)
   const pathname = path.join(pathPrefix, `${ id }${
     stream.fileType === undefined ? "" : `.${ stream.fileType.ext }`
   }`)
-  return await uploadFileS3(
+  return await s3UploadFile(
     stream, pathname, accessPoint, bucket, accountID, region,
     stream.fileType === undefined ? undefined : {
       ContentType: stream.fileType.mime

@@ -1,16 +1,16 @@
-import assert from "assert"
 import { URL } from "url"
 
-import { HTMLElement, parse as parseHTML } from "node-html-parser"
+import { HTMLElement } from "node-html-parser"
 
-import { createPage, uploadImage, uploadImageFromSource } from "../telegraph/api"
-import { TelegraphContentNode, TelegraphContentNodeElement, TelegraphPage } from "../telegraph/types"
-import { DefaultTelegraphAccount, domToNodes } from "../telegraph/utils"
+import { uploadImage, uploadImageFromSource } from "../telegraph/api"
+import { TelegraphContentNode, TelegraphPage } from "../telegraph/types"
+import { createPages, DefaultTelegraphAccount, domToNodes } from "../telegraph/utils"
 import { downloadFile } from "../utils/request"
-import { Dict, UploadFunction } from "../utils/types"
+import { UploadFunction } from "../utils/types"
 
 import { BackupContent, BackupFile, BackupOptions, BackupResult, BackupSource } from "./types"
 import { Readable } from "stream"
+import { s3CreateUploadFunction } from "src/utils/aws"
 
 
 export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) => ({
@@ -32,8 +32,9 @@ export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) =>
 
 export abstract class BaseSource<
   TO extends BackupOptions = BackupOptions,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TR = any
-  > implements BackupSource {
+> implements BackupSource {
   public abstract key: string
   public abstract testURL(url: string): string | undefined
 
@@ -43,14 +44,17 @@ export abstract class BaseSource<
       .set("force", false)
       .set("checkExisting", async () => undefined)
       .set("getCookie", async () => undefined)
-      .set("setCookie", async () => { })
+      .set("setCookie", async () => undefined)
       .set("createTelegraphPage", true)
       .set("telegraphAccount", DefaultTelegraphAccount)
       .set("allowMissingContent", true)
       .set("uploadVideos", false)
+      .set("inlineImages", true)
+      .set("inlineLinks", false)
       .set("awsS3Settings", null)
       .set("plainText", false)
       .set("textLengthLimit", 3072)
+      .set("htmlFromBrowser", null)
       .done() as BackupOptions & Partial<T>
   }
 
@@ -63,7 +67,7 @@ export abstract class BaseSource<
 
   public async backup(
     url: string,
-    options: Partial<BackupOptions> = {}
+    options: Partial<TO> = {}
   ): Promise<BackupResult> {
     const o = this.prepareOptions(url, options) as TO
     if (!o.force) {
@@ -72,16 +76,17 @@ export abstract class BaseSource<
         return existing
       }
     }
-    const fallback = options.awsS3Settings === null
+    const s3 = o.awsS3Settings
+    const fallback = s3 === null
       ? undefined
-      : 
+      : s3CreateUploadFunction("dedeleted", s3.accessPoint, s3.accountID, s3.bucket, s3.region)
     const backupContent = await this.backupInner(url, o)
-    const result = await this.uploadContent(backupContent, o)
+    const result = await this.uploadContent(backupContent, o, fallback)
     return this.prepareResult(backupContent, result, o)
   }
 
   protected async uploadContent(
-    raw: BackupContent,
+    raw: BackupContent<TR>,
     options: TO,
     fallback?: UploadFunction,
   ): Promise<BackupResult<TR>> {
@@ -149,7 +154,7 @@ export abstract class BaseSource<
           if (!options.uploadVideos) {
             return file
           }
-        // No break on purpose
+        // eslint-disable-next-line no-fallthrough
         case "image":
           if (file.download !== undefined) {
             try {
@@ -213,15 +218,18 @@ export abstract class BaseSource<
       })
       for (const attached of raw.otherFiles) {
         switch (attached.type) {
-          case "file":
+          case "file": {
             const href = attached.uploaded ?? attached.source
             attachedChildren.push({
               tag: "a",
               attrs: { href },
               children: [href]
             })
+            break
+          }
           case "video":
-          case "image":
+          // eslint-disable-next-line no-fallthrough
+          case "image": {
             const src = attached.uploaded ?? attached.source
             attachedChildren.push({
               tag: "figure",
@@ -231,16 +239,21 @@ export abstract class BaseSource<
               }]
             })
             break
+          }
         }
       }
     }
-    const pages = await createPages(nodes)
+    const pages = await createPages(
+      raw.title, nodes,
+      options.telegraphAccount,
+      raw.authorName, raw.authorURL
+    )
     return pages
   }
 
   protected prepareResult(
     raw: BackupContent<TR>,
-    pageDict: Dict<[TelegraphPage[], BackupFile[]]>,
+    result: BackupResult<TR>,
     options: TO
   ): BackupResult<TR> {
     let content = raw.parsedHTML.outerHTML
@@ -251,20 +264,11 @@ export abstract class BaseSource<
     } else if (options.plainText) {
       content = text
     }
-    const id = raw.id
-    const [pages, files] = id in pageDict ? pageDict[id] : [[], []]
-    const result: BackupResult<TR> = {
-      id,
-      sourceKey: this.key,
-      source: raw.source,
-      pages, files,
-      content,
-      otherData: raw.data,
-      reposted: raw.reposted.map((x) => this.prepareResult(x, pageDict, options))
-    }
+    result.content = content
     return result
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected domToNodeHandler(dom: HTMLElement, options?: TO): TelegraphContentNode[] | undefined {
     return undefined
   }

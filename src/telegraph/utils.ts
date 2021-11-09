@@ -18,6 +18,7 @@ export const DefaultTelegraphAccount: TelegraphAccount = (() => {
   } as TelegraphAccount
 })()
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const domToNodes = <T = any>(
   domNode: Node,
   domToNodeHandler?: DOMToNodeHandler<T>,
