@@ -19,7 +19,7 @@ const DoubanPathRegex = /(?<key>(review)|(note)|(status)|(topic))\/(?<id>\d*)\/?
 type DoubanTypes = "review" | "note" | "status" | "topic"
 
 export class Douban extends BaseSource<DoubanOptions, DoubanData> {
-  public key = "douban"
+  public readonly key = "douban"
 
   public testURL(url: string): string | undefined {
     url = url.toLowerCase()
@@ -55,7 +55,7 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
     }
   }
 
-  async backupInner(url: string, options: BackupOptions): Promise<BackupContent<DoubanData>> {
+  async backupInner(url: string, options: DoubanOptions): Promise<BackupContent<DoubanData>> {
     const html = options.htmlFromBrowser || await (await fetchPage(
       url, options.getCookie, options.setCookie
     )).text()

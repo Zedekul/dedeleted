@@ -22,7 +22,7 @@ const ZhihuPathRegex = /(?<key>(answer)|(p)|(pin)|(question))\/(?<id>\d*)$/
 type ZhihuTypes = "answer" | "zhuanlan" | "pin" | "question"
 
 export class Zhihu extends BaseSource<ZhihuOptions> {
-  public key = "zhihu"
+  public readonly key = "zhihu"
 
   public testURL(url: string): string | undefined {
     url = url.toLowerCase()

@@ -37,7 +37,7 @@ export abstract class BaseSource<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TR = any
 > implements BackupSource {
-  public abstract key: string
+  public readonly abstract key: string
   public abstract testURL(url: string): string | undefined
 
   protected prepareOptions<T extends BackupOptions>(url: string, options: Partial<T>): Partial<T> {
