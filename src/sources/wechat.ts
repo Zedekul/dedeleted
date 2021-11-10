@@ -73,7 +73,7 @@ export class Wechat extends BaseSource<WechatOptions, WechatData> {
     }
   }
 
-  async backupInner(url: string, options: any): Promise<BackupContent<any>> {
+  async backupInner(url: string, options: WechatOptions): Promise<BackupContent<WechatData>> {
     const html = options.htmlFromBrowser || await (await fetchPage(
       url, options.getCookie, options.setCookie
     )).text()

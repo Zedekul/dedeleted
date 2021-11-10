@@ -20,9 +20,14 @@ export const sources = {
 export const backup = async <T extends BackupOptions=BackupOptions>(
   url: string, options: Partial<T> = {}
 ): Promise<BackupResult | undefined> => {
+  const sourceKey = options.sourceKey
+  if (sourceKey !== undefined && sourceKey in sources) {
+    return sources[sourceKey as keyof typeof sources].backup(url, options)
+  }
   for (const source of Object.values(sources)) {
     const id = source.testURL(url)
     if (id !== undefined) {
+      options.id = id
       return await source.backup(url, options)
     }
   }

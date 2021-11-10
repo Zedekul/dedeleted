@@ -8,8 +8,9 @@ import { AWSS3Settings } from "../utils/aws.js"
 // Some of the options may not work if force=false, since result was cached.
 export interface BackupOptions {
   id: string
+  sourceKey: string
   force: boolean
-  checkExisting: (id: string) => Promise<BackupResult | undefined>
+  checkExisting: (sourceKey: string, id: string) => Promise<BackupResult | undefined>
 
   getCookie: (url: string) => Promise<string | undefined>
   setCookie: (url: string, cookie: string) => Promise<void>

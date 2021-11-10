@@ -46,6 +46,7 @@ export abstract class BaseSource<
   protected prepareOptions<T extends BackupOptions>(url: string, options: Partial<T>): Partial<T> {
     return configOptions(options)
       .setWith("id", () => this.getID(url))
+      .set("sourceKey", this.key)
       .set("force", false)
       .set("checkExisting", async () => undefined)
       .set("getCookie", async () => undefined)
@@ -76,7 +77,7 @@ export abstract class BaseSource<
   ): Promise<BackupResult> {
     const o = this.prepareOptions(url, options) as TO
     if (!o.force) {
-      const existing = await o.checkExisting(o.id)
+      const existing = await o.checkExisting(this.key, o.id)
       if (existing !== undefined) {
         return existing
       }

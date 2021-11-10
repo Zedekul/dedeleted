@@ -78,7 +78,7 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
     const title = selectText(
       htmlDOM, ".note-header > h1", ".article > h1", ".content > h1"
     ) || `豆瓣存档 - ${id}`
-    const authorNode = querySelector(htmlDOM, ".note-author", ".from > a", ".lnk-people", ".hd-main > a")
+    const authorNode = querySelector(htmlDOM, ".note-author", ".from > a", ".lnk-people", ".main-hd > a")
     if (authorNode === null) {
       throw new InvalidFormat(url)
     }
