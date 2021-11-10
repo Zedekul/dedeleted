@@ -5,19 +5,25 @@ import { Zhihu } from "./sources/zhihu.js"
 import { Wechat } from "./sources/wechat.js"
 import { Weibo } from "./sources/weibo.js"
 
+import { Other } from "./sources/other.js"
+
 export const douban = new Douban()
 export const wechat = new Wechat()
 export const weibo = new Weibo()
 export const zhihu = new Zhihu()
 
+export const other = new Other()
+
 export const sources = {
   douban,
   wechat,
   weibo,
-  zhihu
+  zhihu,
+
+  other
 }
 
-export const backup = async <T extends BackupOptions=BackupOptions>(
+export const backup = <T extends BackupOptions=BackupOptions>(
   url: string, options: Partial<T> = {}
 ): Promise<BackupResult | undefined> => {
   const sourceKey = options.sourceKey
@@ -28,8 +34,8 @@ export const backup = async <T extends BackupOptions=BackupOptions>(
     const id = source.testURL(url)
     if (id !== undefined) {
       options.id = id
-      return await source.backup(url, options)
+      return source.backup(url, options)
     }
   }
-  return undefined
+  return other.backup(url, options)
 }

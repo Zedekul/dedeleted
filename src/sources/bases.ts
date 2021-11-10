@@ -7,7 +7,7 @@ import { uploadMediaFile, uploadMediaFromSource } from "../telegraph/api.js"
 import { TelegraphContentNode, TelegraphPage } from "../telegraph/types.js"
 import { createPages, DefaultTelegraphAccount, domToNodes } from "../telegraph/utils.js"
 import { s3CreateUploadFunction } from "../utils/aws.js"
-import { dateToString, shallowCopy } from "../utils/common.js"
+import { dateToString, isImageURL, shallowCopy } from "../utils/common.js"
 import { getDownloadable, getTagName } from "../utils/html.js"
 import { downloadFile } from "../utils/request.js"
 import { UploadFunction } from "../utils/types.js"
@@ -176,6 +176,8 @@ export abstract class BaseSource<
             return file
           }
         // eslint-disable-next-line no-fallthrough
+        case "auto":
+        // eslint-disable-next-line no-fallthrough
         case "image":
           if (file.download !== undefined) {
             try {
@@ -186,6 +188,10 @@ export abstract class BaseSource<
               }
             }
             delete file.download
+          }
+          if (file.type === "auto") {
+            // TODO: detect type
+            file.type = isImageURL(file.uploaded) ? "image" : "file"
           }
           break
         case "file":

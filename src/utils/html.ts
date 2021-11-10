@@ -5,7 +5,7 @@ export const getDownloadable = (url: string | undefined, baseURL?: string): stri
     if (url !== undefined) {
       const u = new URL(url, baseURL)
       if (u.protocol === "http:" || u.protocol === "https:") {
-        return u.toString()
+        return u.href
       }
     }
   } catch {

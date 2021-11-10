@@ -32,7 +32,7 @@ export interface BackupOptions {
   htmlFromBrowser: string | null
 }
 
-export type BackupFileType = "image" | "video" | "file"
+export type BackupFileType = "image" | "video" | "file" | "auto"
 
 export interface BackupFile {
   type: BackupFileType

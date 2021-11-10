@@ -8,13 +8,14 @@ import { UploadFunction } from "../utils/types.js"
 import { CreateFailed, DedeletedError, UploadFailed } from "../errors.js"
 import { TelegraphAccount, TelegraphContentNode, TelegraphFile, TelegraphPage } from "./types.js"
 
+const TelegraphURL = "https://telegra.ph"
 const TelegraphAPI = "https://api.telegra.ph/"
 const TelegraphUploadAPI = "https://telegra.ph/upload"
 
 // Sorry for my hard-coded path.
 const getDefaultImage = (source: string): TelegraphFile => ({
   id: "deleted-weibo-image",
-  path: "/file/8294ffae080bc4534dddd.png",
+  path: `${TelegraphURL}/file/8294ffae080bc4534dddd.png`,
   source
 })
 
@@ -61,7 +62,7 @@ export const uploadMediaFile = async (
     const stream2 = await download()
     uploaded = [{ src: await fallback(stream2 as Readable, tphFile.id) }]
   }
-  tphFile.path = uploaded[0].src
+  tphFile.path = new URL(uploaded[0].src, TelegraphURL).href
   return tphFile
 }
 
