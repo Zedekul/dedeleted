@@ -45,7 +45,8 @@ export type WeiboDetail = {
   [key: string]: any
 }
 
-const WeiboURL = "https://www.weibo.com/"
+const WeiboMobileURL = "https://m.weibo.cn"
+const WeiboURL = "https://www.weibo.com"
 const WeiboAPI = "https://m.weibo.cn/statuses/show?id="
 const WeiboURLRegex = /^(https?:\/\/)?(m\.)?weibo\.(com|cn)\/.*$/
 const WeiboPathRegex = /(?<type>detail|status|\d+)\/(?<post_id>.+?)\/?$/
@@ -117,6 +118,14 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
     return `post-${postID}`
   }
 
+  getStandardURL(id: string): string {
+    const [type, postID] = id.split("-") as [WeiboTypes, string]
+    if (type === "post") {
+      return `${WeiboMobileURL}/status/${postID}`
+    }
+    throw new InvalidFormat(id)
+  }
+
   getTypeName(urlOrid: string): string {
     const id = WeiboURLRegex.test(urlOrid) ? this.getID(urlOrid) : urlOrid
     const type = id.split("-")[0] as WeiboTypes
@@ -132,17 +141,17 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
       return await this.backupFromBrowser(url, options)
     }
     const { id } = options
-    const [type, postID] = id.split("-")
+    const [type, postID] = id.split("-") as [WeiboTypes, string]
     // TODO: support article
     assert(type === "post")
     const weibo = await this.getWeibo(postID, options)
     if (weibo === undefined) {
       throw new CannotAccess(url)
     }
-    const standardURL = `${WeiboURL}${weibo.user.id}/${weibo.bid}`
+    const standardURL = `${WeiboURL}/${weibo.user.id}/${weibo.bid}`
     const authorName = weibo.user.screen_name
-    const authorURL = `${WeiboURL}${weibo.user.id}`
-    const title = `微博存档：${weibo.bid}`
+    const authorURL = `${WeiboURL}/${weibo.user.id}`
+    const title = `微博存档 - ${weibo.bid}`
     const createdAt = new Date(weibo.created_at)
     const updatedAt = weibo.edited_at === undefined ? undefined : new Date(weibo.edited_at)
     const reposted = []
@@ -185,18 +194,21 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
       parsedHTML,
       options.inlineImages,
       options.uploadVideos,
-      options.inlineLinks
-    )
-    for (const node of inlineNodes) {
+      options.inlineLinks || options.inlineImages
+    ).map(node => {
       if (getTagName(node) === "a") {
         const href = node.getAttribute("href")
         if (href !== undefined && isImageURL(href, url)) {
           const img = new HTMLElement("img", {}, "", node.parentNode)
           img.setAttribute("src", href)
           node.replaceWith(img)
+          return img
+        } else if (!options.inlineLinks) {
+          return undefined
         }
       }
-    }
+      return node
+    }).filter(node => node !== undefined) as HTMLElement[]
     return {
       id,
       title,

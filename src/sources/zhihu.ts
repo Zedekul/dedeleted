@@ -17,6 +17,8 @@ export type ZhihuData = {
   // ...
 }
 
+const ZhihuZhuanlanURL = "https://zhuanlan.zhihu.com"
+const ZhihuURL = "https://www.zhihu.com"
 const ZhihuURLRegex = /^(https?:\/\/)?(.*?\.)?zhihu\.com\/.*$/
 const ZhihuPathRegex = /(?<key>(answer)|(p)|(pin)|(question))\/(?<id>\d*)$/
 type ZhihuTypes = "answer" | "zhuanlan" | "pin" | "question"
@@ -44,6 +46,13 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     }
     const { key, id } = m.groups
     return `${key === "p" ? "zhuanlan" : key}-${id}`
+  }
+
+  getStandardURL(id: string): string {
+    const [type, postID] = id.split("-") as [ZhihuTypes, string]
+    return type === "zhuanlan"
+      ? `${ZhihuZhuanlanURL}/p/${postID}`
+      : `${ZhihuURL}/${type}/${postID}`
   }
 
   getTypeName(urlOrid: string): string {
@@ -145,7 +154,7 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     if (reposted != undefined) {
       // TODO: Backup Reposted
     }
-    const parsedHTML = parseHTML(content, { lowerCaseTagName: true })
+    const parsedHTML = parseHTML(content)
     const inlineNodes = getInlines(
       parsedHTML,
       options.inlineImages,

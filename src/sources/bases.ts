@@ -71,7 +71,7 @@ export abstract class BaseSource<
   }
 
   public async backup(
-    url: string,
+    url: string = "",
     options: Partial<TO> = {}
   ): Promise<BackupResult> {
     const o = this.prepareOptions(url, options) as TO
@@ -85,6 +85,9 @@ export abstract class BaseSource<
     const fallback = s3 === null
       ? undefined
       : s3CreateUploadFunction("dedeleted", s3.accessPoint, s3.accountID, s3.bucket, s3.region)
+    if (!url) {
+      url = this.getStandardURL(o.id)
+    }
     const backupContent = await this.backupInner(url, o)
     const result = await this.uploadContent(backupContent, o, fallback)
     return this.prepareResult(backupContent, result, o)
@@ -219,6 +222,12 @@ export abstract class BaseSource<
         }
       }
     }
+    if (raw.metaString !== undefined) {
+      nodes.unshift({
+        tag: "p",
+        children: [raw.metaString]
+      })
+    }
     nodes.unshift({
       tag: "p",
       children: ["原链接：", {
@@ -228,8 +237,8 @@ export abstract class BaseSource<
       }, `\n发表于：${dateToString(raw.createdAt)}`,
         raw.updatedAt === undefined
         ? ""
-        : `\n更新于：${dateToString(raw.updatedAt)}`,
-      raw.metaString || "" ]
+        : `\n更新于：${dateToString(raw.updatedAt)}`
+      ]
     })
     if (raw.otherFiles.length > 0) {
       const attachedChildren: TelegraphContentNode[] = ["附件：",]
@@ -297,6 +306,7 @@ export abstract class BaseSource<
   }
 
   abstract getID(url: string): string
+  abstract getStandardURL(id: string): string
   abstract getTypeName(urlOrid: string): string
   abstract backupInner(url: string, options: TO): Promise<BackupContent<TR>>
 }

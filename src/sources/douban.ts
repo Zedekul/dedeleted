@@ -14,8 +14,9 @@ export type DoubanData = {
   // ...
 }
 
+const DoubanURL = "https://www.douban.com"
 const DoubanURLRegex = /^(https?:\/\/)?(.*?\.)?douban\.com\/.*$/
-const DoubanPathRegex = /(?<key>(review)|(note)|(status)|(topic))\/(?<id>\d*)\/?$/
+const DoubanPathRegex = /(people\/(?<userID>\d+)\/)?(?<key>(review)|(note)|(status)|(topic))\/(?<id>\d+)\/?$/
 type DoubanTypes = "review" | "note" | "status" | "topic"
 
 export class Douban extends BaseSource<DoubanOptions, DoubanData> {
@@ -39,8 +40,21 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
     if (m === null || m.groups === undefined) {
       throw new InvalidFormat(url)
     }
-    const { key, id } = m.groups
-    return `${key}-${id}`
+    const { key, id, userID } = m.groups
+    return userID === undefined
+      ? `${key}-${id}`
+      : `${key}-${id}-${userID}`
+  }
+
+  getStandardURL(id: string): string {
+    const [ type, postID, userID ] = id.split("-") as [DoubanTypes, string, string?]
+    if (type === "status") {
+      return `${DoubanURL}/people/${userID}/status/${postID}`
+    } else if (type === "topic") {
+      return `${DoubanURL}/group/topic/${postID}`
+    }
+    // review would be automatically redirected to their corresponding pages
+    return `${DoubanURL}/${type}/${postID}`
   }
 
   getTypeName(urlOrid: string): string {
@@ -59,11 +73,11 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
     const html = options.htmlFromBrowser || await (await fetchPage(
       url, options.getCookie, options.setCookie
     )).text()
-    const htmlDOM = parseHTML(html, { lowerCaseTagName: true })
+    const htmlDOM = parseHTML(html)
     const [type, id] = options.id.split("-") as [DoubanTypes, string]
     const title = selectText(
       htmlDOM, ".note-header > h1", ".article > h1", ".content > h1"
-    ) || `豆瓣备份 - ${id}`
+    ) || `豆瓣存档 - ${id}`
     const authorNode = querySelector(htmlDOM, ".note-author", ".from > a", ".lnk-people", ".hd-main > a")
     if (authorNode === null) {
       throw new InvalidFormat(url)

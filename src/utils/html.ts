@@ -19,15 +19,15 @@ export const getInlines = (
   video = true,
   link = true
 ): HTMLElement[] => {
-  const results = [] as HTMLElement[]
+  let results = [] as HTMLElement[]
   if (image) {
-    results.concat(root.querySelectorAll("img"))
+    results = results.concat(root.querySelectorAll("img"))
   }
   if (video) {
-    results.concat(root.querySelectorAll("video"))
+    results = results.concat(root.querySelectorAll("video"))
   }
   if (link) {
-    results.concat(root.querySelectorAll("a"))
+    results = results.concat(root.querySelectorAll("a"))
   }
   return results
 }

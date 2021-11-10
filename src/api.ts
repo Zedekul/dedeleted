@@ -1,14 +1,20 @@
 import { BackupOptions, BackupResult } from "./sources/types.js"
 
 import { Douban } from "./sources/douban.js"
-import { Weibo } from "./sources/weibo.js"
 import { Zhihu } from "./sources/zhihu.js"
+import { Wechat } from "./sources/wechat.js"
+import { Weibo } from "./sources/weibo.js"
 
 export const douban = new Douban()
+export const wechat = new Wechat()
 export const weibo = new Weibo()
 export const zhihu = new Zhihu()
+
 export const sources = {
-  douban, weibo, zhihu
+  douban,
+  wechat,
+  weibo,
+  zhihu
 }
 
 export const backup = async <T extends BackupOptions=BackupOptions>(
