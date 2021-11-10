@@ -47,7 +47,7 @@ export interface BackupContent<T = any> {
   authorName?: string
   authorURL?: string
   createdAt: Date
-  updatedAt: Date
+  updatedAt?: Date
   metaString?: string
   source: string
   parsedHTML: HTMLElement

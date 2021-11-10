@@ -3,7 +3,7 @@ import assert from "node:assert"
 import { parse as parseHTML } from "node-html-parser"
 
 import { CannotAccess, DedeletedError, InvalidFormat } from "../errors.js"
-import { getInlines } from "../utils/html.js"
+import { getInlines, getTagName } from "../utils/html.js"
 import { fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
@@ -113,7 +113,7 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
       case "zhuanlan":
         author = entity.author
         content = entity.content
-        title = entity.title || `${ entity.question.title } - ${ author.name } 的回答`
+        title = entity.title || `${entity.question.title} - ${author.name} 的回答`
         break
       case "pin":
         if (entity.content.length === 0) {
@@ -121,7 +121,7 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
         }
         author = entities.users[entity.author]
         content = entity.contentHtml
-        title = `${ author.name } 的想法`
+        title = `${author.name} 的想法`
         if (entity.originalPin !== undefined) {
           const originalPin = entity.originalPin
           content += `<br>${originalPin.contentHtml}`
@@ -145,10 +145,15 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     if (reposted != undefined) {
       // TODO: Backup Reposted
     }
-    const parsedHTML = parseHTML(content)
-    const inlineNodes = getInlines(parsedHTML, options.inlineImages, options.inlineLinks)
+    const parsedHTML = parseHTML(content, { lowerCaseTagName: true })
+    const inlineNodes = getInlines(
+      parsedHTML,
+      options.inlineImages,
+      options.uploadVideos,
+      options.inlineLinks
+    )
     for (const node of inlineNodes) {
-      if (node.tagName.toLowerCase() === "img") {
+      if (getTagName(node) === "img") {
         node.setAttribute(
           "src",
           node.getAttribute("data-original") ||

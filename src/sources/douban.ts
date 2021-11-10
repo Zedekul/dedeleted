@@ -59,7 +59,7 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
     const html = options.htmlFromBrowser || await (await fetchPage(
       url, options.getCookie, options.setCookie
     )).text()
-    const htmlDOM = parseHTML(html)
+    const htmlDOM = parseHTML(html, { lowerCaseTagName: true })
     const [type, id] = options.id.split("-") as [DoubanTypes, string]
     const title = selectText(
       htmlDOM, ".note-header > h1", ".article > h1", ".content > h1"
@@ -92,7 +92,12 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
       throw new InvalidFormat(url)
     }
     const parsedHTML = trimNode(articleDOM, true) as HTMLElement
-    const inlineNodes = getInlines(parsedHTML, options.inlineImages, options.inlineLinks)
+    const inlineNodes = getInlines(
+      parsedHTML,
+      options.inlineImages,
+      options.uploadVideos,
+      options.inlineLinks
+    )
     return {
       id: options.id,
       title,
@@ -100,7 +105,6 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
       authorURL,
       metaString,
       createdAt,
-      updatedAt: createdAt,
       source: url,
       parsedHTML,
       inlineNodes,

@@ -2,6 +2,7 @@ import { HTMLElement, Node } from "node-html-parser"
 
 import { ConfigError } from "../errors.js"
 import { DEFAULT_TELEGRAPH_ACCOUNT_TOKEN } from "../utils/config.js"
+import { getTagName } from "../utils/html.js"
 
 import { createPage } from "./api.js"
 import { DOMToNodeHandler, TelegraphAccount, TelegraphContentNode, TelegraphContentNodeElement, TelegraphPage } from "./types.js"
@@ -36,8 +37,8 @@ export const domToNodes = <T = any>(
     nodes = domToNodeHandler(dom, ctx)
   }
   if (nodes === undefined) {
-    const tag = dom.tagName == null ? "" : dom.tagName.toLowerCase()
-    if (tag === "img") {
+    const tag = getTagName(dom)
+    if (tag === "img" || tag === "video") {
       const img = {
         tag,
         attrs: "src" in dom.attributes ? { src: dom.attributes.src } : undefined

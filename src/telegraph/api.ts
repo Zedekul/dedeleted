@@ -18,14 +18,14 @@ const getDefaultImage = (source: string): TelegraphFile => ({
   source
 })
 
-export const uploadImageFromSource = (
+export const uploadMediaFromSource = (
   source: string,
   cookie?: string,
   id: string = uuid(),
   fallback?: UploadFunction
-): Promise<TelegraphFile> => uploadImage(source, () => downloadFile(source, cookie), id, fallback)
+): Promise<TelegraphFile> => uploadMediaFile(source, () => downloadFile(source, cookie), id, fallback)
 
-export const uploadImage = async (
+export const uploadMediaFile = async (
   source: string,
   download: () => Promise<Stream | undefined>,
   id: string = uuid(), fallback?: UploadFunction

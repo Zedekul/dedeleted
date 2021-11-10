@@ -13,27 +13,26 @@ export const getDownloadable = (url: string | undefined, baseURL?: string): stri
   }
 }
 
-export const getInlines = (root: HTMLElement, image = true, link = true): HTMLElement[] => {
+export const getInlines = (
+  root: HTMLElement,
+  image = true,
+  video = true,
+  link = true
+): HTMLElement[] => {
   const results = [] as HTMLElement[]
-  const walk = (node: Node) => {
-    if (node.nodeType !== 1) {
-      return
-    }
-    const dom = node as HTMLElement
-    const tag = dom.tagName === null ? null : dom.tagName.toLowerCase()
-    if (tag === "img" && image) {
-      results.push(dom)
-    } else if (tag === "a" && link) {
-      results.push(dom)
-    } else {
-      node.childNodes.forEach(walk)
-    }
+  if (image) {
+    results.concat(root.querySelectorAll("img"))
   }
-  root.childNodes.forEach(walk)
+  if (video) {
+    results.concat(root.querySelectorAll("video"))
+  }
+  if (link) {
+    results.concat(root.querySelectorAll("a"))
+  }
   return results
 }
 
-export function querySelector(dom: HTMLElement, ...selectors: string[]): HTMLElement | null {
+export const querySelector = (dom: HTMLElement, ...selectors: string[]): HTMLElement | null => {
   for (const s of selectors) {
     const t = dom.querySelector(s)
     if (t) {
@@ -43,9 +42,14 @@ export function querySelector(dom: HTMLElement, ...selectors: string[]): HTMLEle
   return null
 }
 
-export function selectText(dom: HTMLElement, ...selectors: string[]): string | null {
+export const selectText = (dom: HTMLElement, ...selectors: string[]): string | null => {
   const t = querySelector(dom, ...selectors)
   return t ? t.text.trim() : null
+}
+
+export const getTagName = (node: Node): string => {
+  const s = node as HTMLElement
+  return s.tagName ? s.tagName.toLowerCase() : ""
 }
 
 const isEmptyNode = (node: Node): boolean => {
@@ -53,10 +57,10 @@ const isEmptyNode = (node: Node): boolean => {
     return node.text.trim().length === 0
   }
   const s = node as HTMLElement
-  if (s.tagName === undefined) {
+  const tag = getTagName(s)
+  if (tag === "") {
     return s.childNodes.length === 0
   }
-  const tag = s.tagName.toLowerCase()
   if (tag === "img" || tag === "video") {
     return false
   }
@@ -101,16 +105,15 @@ export const trimNode = (node: Node, recursive = true): Node | undefined => {
     }
   }
   dom.childNodes = children
-  const tag = dom.tagName.toLowerCase()
+  const tag = getTagName(dom)
   if (
     children.length === 1 &&
+    tag !== "" &&
     tag !== "img" &&
-    tag !== "a"
+    tag !== "a" &&
+    getTagName(children[0]) === tag
   ) {
-    const child = children[0] as HTMLElement
-    if (child.tagName !== undefined && child.tagName.toLowerCase() === tag) {
-      return child
-    }
+    return children[0]
   }
   return dom
 }

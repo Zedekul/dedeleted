@@ -1,21 +1,91 @@
-import { InvalidFormat } from "../errors"
-import { BaseSource } from "./bases"
-import { BackupContent, BackupOptions } from "./types"
+import assert from "node:assert"
+
+import { HTMLElement, parse as parseHTML } from "node-html-parser"
+
+import { CannotAccess, InvalidFormat } from "../errors.js"
+import { isImageURL, shallowCopy } from "../utils/common.js"
+import { downloadFile, fetchPage } from "../utils/request.js"
+
+import { BaseSource } from "./bases.js"
+import { BackupContent, BackupFile, BackupOptions } from "./types.js"
+import { getInlines, getTagName } from "../utils/html.js"
+import { Readable } from "node:stream"
 
 export type WeiboOptions = {
 } & BackupOptions
 
-export type WeiboData = {
-  // ...
+export type WeiboUser = {
+  id: number,
+  screen_name: string,
+  description: string,
+  statuses_count: number | string,
+  follow_count: number | string,
+  followers_count: number | string,
+  avatar_hd: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any
 }
 
+export type WeiboDetail = {
+  id: string,
+  bid: string,
+  source: string,
+  text: string,
+  pics?: Array<{ large: { url: string } }>,
+  reposts_count: number | string,
+  comments_count: number | string,
+  attitudes_count: number | string,
+  page_info?: { type: string, media_info: { stream_url_hd: string } },
+  isLongText?: boolean,
+  retweeted_status?: WeiboDetail,
+  user: WeiboUser,
+  created_at: string,
+  edited_at?: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any
+}
+
+const WeiboURL = "https://www.weibo.com/"
 const WeiboAPI = "https://m.weibo.cn/statuses/show?id="
 const WeiboURLRegex = /^(https?:\/\/)?(m\.)?weibo\.(com|cn)\/.*$/
 const WeiboPathRegex = /(?<type>detail|status|\d+)\/(?<post_id>.+?)\/?$/
-// TODO: support article
 type WeiboTypes = "post" | "article"
 
-export class Weibo extends BaseSource<WeiboOptions, WeiboData> {
+const Base62Codes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const base62Encode = (x: number): string => {
+  if (x === 0) {
+    return Base62Codes[0]
+  }
+  const arr = []
+  const base = Base62Codes.length
+  while (x > 0) {
+    const num = x % base
+    arr.push(Base62Codes[num])
+    x = (x - num) / base
+  }
+  return arr.reverse().join("")
+}
+
+const idToPostID = (weiboID: number): string => {
+  const weiboIDString = weiboID.toString()
+  let len = weiboIDString.length
+  const arr = []
+  while (len > 0) {
+    const l = len >= 7 ? len - 7 : 0
+    const current = parseInt(weiboIDString.slice(l, len), 10)
+    let encoded = base62Encode(current)
+    if (l > 0) {
+      while (encoded.length < 4) {
+        encoded = "0" + encoded
+      }
+    }
+    arr.push(encoded)
+    len = l
+  }
+  return arr.reverse().join("")
+}
+
+export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
   public readonly key = "weibo"
 
   public testURL(url: string): string | undefined {
@@ -32,16 +102,19 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboData> {
 
   getID(url: string): string {
     const { pathname, searchParams } = this.getURL(url)
-    const searchID = searchParams.get("weibo_id")
-    if (searchID !== null) {
-      return searchID
+    let postID = searchParams.get("weibo_id")
+    if (postID === null) {
+      const m = WeiboPathRegex.exec(pathname)
+      if (m === null || m.groups === undefined) {
+        throw new InvalidFormat(url)
+      }
+      postID = m.groups.post_id
     }
-    const m = WeiboPathRegex.exec(pathname)
-    if (m === null || m.groups === undefined) {
-      throw new InvalidFormat(url)
+    const weiboID = parseInt(postID, 10)
+    if (!Number.isNaN(weiboID)) {
+      postID = idToPostID(weiboID)
     }
-    const { post_id } = m.groups
-    return `post-${post_id}`
+    return `post-${postID}`
   }
 
   getTypeName(urlOrid: string): string {
@@ -54,14 +127,106 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboData> {
     }
   }
 
-  async backupInner(url: string, options: WeiboOptions): Promise<BackupContent<WeiboData>> {
+  async backupInner(url: string, options: WeiboOptions): Promise<BackupContent<WeiboDetail>> {
     if (options.htmlFromBrowser !== null) {
       return await this.backupFromBrowser(url, options)
     }
-    throw new Error("Method not implemented.")
+    const { id } = options
+    const [type, postID] = id.split("-")
+    // TODO: support article
+    assert(type === "post")
+    const weibo = await this.getWeibo(postID, options)
+    if (weibo === undefined) {
+      throw new CannotAccess(url)
+    }
+    const standardURL = `${WeiboURL}${weibo.user.id}/${weibo.bid}`
+    const authorName = weibo.user.screen_name
+    const authorURL = `${WeiboURL}${weibo.user.id}`
+    const title = `微博存档：${weibo.bid}`
+    const createdAt = new Date(weibo.created_at)
+    const updatedAt = weibo.edited_at === undefined ? undefined : new Date(weibo.edited_at)
+    const reposted = []
+    if (options.backupReposted && weibo.retweeted_status !== undefined) {
+      const repostedID = `post-${weibo.retweeted_status.bid}`
+      try {
+        const repostedData = await this.backupInner("", shallowCopy(options, { id: repostedID }))
+        reposted.push(repostedData)
+      } catch {
+        // ignore
+      }
+    }
+    const pictures: BackupFile[] = weibo.pics === undefined ? [] : weibo.pics.map(
+      pic => ({
+        type: "image",
+        source: pic.large.url,
+        download: async () => await downloadFile(
+          pic.large.url, await options.getCookie(pic.large.url)
+        ) as Readable
+      })
+    )
+    if (weibo.page_info !== undefined && weibo.page_info.type === "video") {
+      const videoURL = weibo.page_info.media_info.stream_url_hd
+      pictures.push({
+        type: "video",
+        source: videoURL,
+        download: async () => await downloadFile(
+          videoURL, await options.getCookie(videoURL)
+        ) as Readable
+      })
+    }
+    const parsedHTML = parseHTML(weibo.text)
+    for (const node of parsedHTML.querySelectorAll("span.url-icon > img")) {
+      const alt = node.getAttribute("alt")
+      if (alt !== undefined) {
+        node.replaceWith(alt)
+      }
+    }
+    const inlineNodes = getInlines(
+      parsedHTML,
+      options.inlineImages,
+      options.uploadVideos,
+      options.inlineLinks
+    )
+    for (const node of inlineNodes) {
+      if (getTagName(node) === "a") {
+        const href = node.getAttribute("href")
+        if (href !== undefined && isImageURL(href, url)) {
+          const img = new HTMLElement("img", {}, "", node.parentNode)
+          img.setAttribute("src", href)
+          node.replaceWith(img)
+        }
+      }
+    }
+    return {
+      id,
+      title,
+      authorName,
+      authorURL,
+      createdAt,
+      updatedAt,
+      source: standardURL,
+      parsedHTML,
+      inlineNodes,
+      otherFiles: pictures,
+      data: weibo,
+      reposted
+    }
   }
 
-  backupFromBrowser(url: string, options: WeiboOptions): Promise<BackupContent<WeiboData>> {
+  async getWeibo(postID: string, options: BackupOptions): Promise<WeiboDetail | undefined> {
+    try {
+      const response = await fetchPage(WeiboAPI + postID, options.getCookie, options.setCookie)
+      const data = await response.json() as unknown as {
+        ok: number,
+        data?: WeiboDetail
+      }
+      return data.ok === 1 ? data.data : undefined
+    } catch {
+      return undefined
+    }
+  }
+
+  backupFromBrowser(url: string, options: WeiboOptions): Promise<BackupContent<WeiboDetail>> {
     throw new Error("Method not implemented.")
   }
 }

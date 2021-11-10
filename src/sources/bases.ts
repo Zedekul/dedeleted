@@ -3,33 +3,36 @@ import { URL } from "node:url"
 
 import { HTMLElement } from "node-html-parser"
 
-import { uploadImage, uploadImageFromSource } from "../telegraph/api.js"
+import { uploadMediaFile, uploadMediaFromSource } from "../telegraph/api.js"
 import { TelegraphContentNode, TelegraphPage } from "../telegraph/types.js"
 import { createPages, DefaultTelegraphAccount, domToNodes } from "../telegraph/utils.js"
 import { s3CreateUploadFunction } from "../utils/aws.js"
-import { dateToString } from "../utils/common.js"
-import { getDownloadable } from "../utils/html.js"
+import { dateToString, shallowCopy } from "../utils/common.js"
+import { getDownloadable, getTagName } from "../utils/html.js"
 import { downloadFile } from "../utils/request.js"
 import { UploadFunction } from "../utils/types.js"
 
 import { BackupContent, BackupFile, BackupOptions, BackupResult, BackupSource } from "./types.js"
 
 
-export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) => ({
-  set<TK extends keyof TO>(key: TK, defaultValue: TO[TK]) {
-    if (options[key] === undefined) {
-      options[key] = defaultValue
-    }
-    return this
-  },
-  setWith<TK extends keyof TO>(key: TK, getDefaultValue: () => TO[TK]) {
-    if (options[key] === undefined) {
-      options[key] = getDefaultValue()
-    }
-    return this
-  },
-  done: () => options
-})
+export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) => {
+  options = shallowCopy(options)
+  return {
+    set<TK extends keyof TO>(key: TK, defaultValue: TO[TK]) {
+      if (options[key] === undefined) {
+        options[key] = defaultValue
+      }
+      return this
+    },
+    setWith<TK extends keyof TO>(key: TK, getDefaultValue: () => TO[TK]) {
+      if (options[key] === undefined) {
+        options[key] = getDefaultValue()
+      }
+      return this
+    },
+    done: () => options
+  }
+}
 
 
 export abstract class BaseSource<
@@ -123,14 +126,14 @@ export abstract class BaseSource<
       if (node.nodeType !== 1) {
         return
       }
-      const tag = node.tagName.toLowerCase()
-      if (tag === "img") {
+      const tag = getTagName(node)
+      if (tag === "img" || tag === "video") {
         const src = node.getAttribute("src")
         const d = getDownloadable(src, source)
         if (d === undefined) {
           return
         }
-        const telegraphFile = await uploadImageFromSource(
+        const telegraphFile = await uploadMediaFromSource(
           d,
           await options.getCookie(d), `${id}-inline-${i}`,
           fallback
@@ -172,7 +175,7 @@ export abstract class BaseSource<
         case "image":
           if (file.download !== undefined) {
             try {
-              file.uploaded = (await uploadImage(file.source, file.download, `${raw.id}-${i}`, fallback)).path
+              file.uploaded = (await uploadMediaFile(file.source, file.download, `${raw.id}-${i}`, fallback)).path
             } catch (e) {
               if (!options.allowMissingContent) {
                 throw e
@@ -222,13 +225,17 @@ export abstract class BaseSource<
         tag: "a",
         attrs: { href: raw.source },
         children: [raw.source]
-      }, `\n发表于：${dateToString(raw.createdAt)}\n更新于：${dateToString(raw.updatedAt)}`,
+      }, `\n发表于：${dateToString(raw.createdAt)}`,
+        raw.updatedAt === undefined
+        ? ""
+        : `\n更新于：${dateToString(raw.updatedAt)}`,
       raw.metaString || "" ]
     })
     if (raw.otherFiles.length > 0) {
       const attachedChildren: TelegraphContentNode[] = ["附件：",]
+      nodes.push("\n")
       nodes.push({
-        tag: "p",
+        tag: "div",
         children: attachedChildren
       })
       for (const attached of raw.otherFiles) {
