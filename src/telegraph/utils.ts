@@ -25,7 +25,7 @@ export const domToNodes = <T = any>(
   ctx?: T
 ): TelegraphContentNode[] => {
   if (domNode.nodeType === 3) {
-    return [ domNode.text ]
+    return [ domNode.textContent ]
   }
   if (domNode.nodeType !== 1) {
     return [ "" ]
@@ -55,7 +55,8 @@ export const domToNodes = <T = any>(
       nodes = [{ tag }]
     }
     if (dom.childNodes.length > 0) {
-      (nodes[0] as TelegraphContentNodeElement).children = flattenNodes(dom.childNodes.map(
+      const parent = nodes[0] as TelegraphContentNodeElement
+      parent.children = flattenNodes(dom.childNodes.map(
         (child) => domToNodes(child, domToNodeHandler)
       ))
     }

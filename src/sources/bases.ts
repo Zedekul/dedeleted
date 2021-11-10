@@ -135,6 +135,7 @@ export abstract class BaseSource<
           await options.getCookie(d), `${id}-inline-${i}`,
           fallback
         )
+        node.setAttribute("src", telegraphFile.path)
         return {
           type: "image",
           uploaded: telegraphFile.path
@@ -147,6 +148,7 @@ export abstract class BaseSource<
         }
         const stream = await downloadFile(d, await options.getCookie(d))
         const uploaded = await fallback(stream as Readable, `${id}-inline-${i}`)
+        node.setAttribute("href", uploaded)
         return {
           type: "file",
           uploaded
@@ -220,7 +222,8 @@ export abstract class BaseSource<
         tag: "a",
         attrs: { href: raw.source },
         children: [raw.source]
-      }, `\n发表于：${dateToString(raw.createdTime)}\n更新于：${dateToString(raw.updatedTime)}`]
+      }, `\n发表于：${dateToString(raw.createdAt)}\n更新于：${dateToString(raw.updatedAt)}`,
+      raw.metaString || "" ]
     })
     if (raw.otherFiles.length > 0) {
       const attachedChildren: TelegraphContentNode[] = ["附件：",]
@@ -270,6 +273,7 @@ export abstract class BaseSource<
   ): BackupResult<TR> {
     let content = raw.parsedHTML.outerHTML
     const text = raw.parsedHTML.structuredText
+      .replace(/\n\s+\n/g, "\n")
     const limit = options.textLengthLimit
     if (text.length > limit) {
       content = text.substr(0, options.textLengthLimit)

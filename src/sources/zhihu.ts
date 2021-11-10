@@ -106,8 +106,8 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     let title = "知乎备份"
     let content: string | undefined
     let reposted: string | undefined
-    const createdTime = new Date((entity.created || entity.createdTime) * 1000)
-    const updatedTime = new Date((entity.updated || entity.updatedTime) * 1000)
+    const createdAt = new Date((entity.created || entity.createdTime) * 1000)
+    const updatedAt = new Date((entity.updated || entity.updatedTime) * 1000)
     switch (type) {
       case "answer":
       case "zhuanlan":
@@ -161,8 +161,8 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
       title,
       authorName: author.name,
       authorURL: author.url,
-      createdTime,
-      updatedTime,
+      createdAt,
+      updatedAt,
       source: url,
       parsedHTML,
       inlineNodes,

@@ -1,7 +1,10 @@
 import { BackupOptions, BackupResult } from "./sources/types.js"
+
+import { Douban } from "./sources/douban.js"
 import { Zhihu } from "./sources/zhihu.js"
 
 const sources = [
+  new Douban(),
   new Zhihu()
 ]
 
