@@ -1,4 +1,4 @@
-import assert from "node:assert"
+import assert from "assert"
 
 import { CannotAccess, DedeletedError, InvalidFormat } from "../errors.js"
 import { getInlines, getTagName, parseHTML } from "../utils/html.js"

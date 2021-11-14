@@ -1,6 +1,6 @@
-import { createReadStream } from "node:fs"
-import path from "node:path"
-import { Readable } from "node:stream"
+import { createReadStream } from "fs"
+import path from "path"
+import { Readable } from "stream"
 
 import AWS from "aws-sdk/global.js"
 import S3 from "aws-sdk/clients/s3.js"

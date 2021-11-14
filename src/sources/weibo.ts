@@ -1,5 +1,5 @@
-import assert from "node:assert"
-import { Readable } from "node:stream"
+import assert from "assert"
+import { Readable } from "stream"
 
 import { HTMLElement } from "node-html-parser"
 

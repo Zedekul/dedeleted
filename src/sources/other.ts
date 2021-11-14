@@ -1,7 +1,7 @@
+import { Readable } from "stream"
 import { HTMLElement } from "node-html-parser"
-import { Readable } from "node:stream"
-import { getInlines, parseHTML, selectText, trimNode } from "../utils/html.js"
 
+import { getInlines, parseHTML, selectText, trimNode } from "../utils/html.js"
 import { downloadFile, fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"

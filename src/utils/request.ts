@@ -1,6 +1,6 @@
-import http from "node:http"
-import https from "node:https"
-import { Stream } from "node:stream"
+import http from "http"
+import https from "https"
+import { Stream } from "stream"
 
 import fetch, { RequestInit, Response } from "node-fetch"
 

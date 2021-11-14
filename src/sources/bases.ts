@@ -1,5 +1,5 @@
-import { Readable } from "node:stream"
-import { URL } from "node:url"
+import { Readable } from "stream"
+import { URL } from "url"
 
 import { HTMLElement } from "node-html-parser"
 

@@ -1,4 +1,4 @@
-import { Readable, Stream } from "node:stream"
+import { Readable, Stream } from "stream"
 
 import FormData from "form-data"
 import { v4 as uuid } from "uuid"
