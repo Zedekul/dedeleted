@@ -1,6 +1,6 @@
-import { parse as parseHTML, HTMLElement } from "node-html-parser"
+import { HTMLElement } from "node-html-parser"
 import { Readable } from "node:stream"
-import { getInlines, selectText, trimNode } from "../utils/html.js"
+import { getInlines, parseHTML, selectText, trimNode } from "../utils/html.js"
 
 import { downloadFile, fetchPage } from "../utils/request.js"
 

@@ -1,7 +1,7 @@
-import { parse as parseHTML, HTMLElement } from "node-html-parser"
+import { HTMLElement } from "node-html-parser"
 
 import { InvalidFormat } from "../errors.js"
-import { getInlines, querySelector, selectText, trimNode } from "../utils/html.js"
+import { getInlines, parseHTML, querySelector, selectText, trimNode } from "../utils/html.js"
 import { fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"

@@ -1,4 +1,9 @@
 import { HTMLElement, Node } from "node-html-parser"
+import parse from "node-html-parser"
+
+export const parseHTML = (html: string): HTMLElement => {
+  return parse(html)
+}
 
 export const getDownloadable = (url: string | undefined, baseURL?: string): string | undefined => {
   try {

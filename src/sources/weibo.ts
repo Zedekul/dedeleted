@@ -1,10 +1,11 @@
 import assert from "node:assert"
 import { Readable } from "node:stream"
 
-import { HTMLElement, parse as parseHTML } from "node-html-parser"
+import { HTMLElement } from "node-html-parser"
 
 import { CannotAccess, InvalidFormat } from "../errors.js"
 import { isImageURL, shallowCopy } from "../utils/common.js"
+import { parseHTML } from "../utils/html.js"
 import { downloadFile, fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"

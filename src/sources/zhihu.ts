@@ -1,9 +1,7 @@
 import assert from "node:assert"
 
-import { parse as parseHTML } from "node-html-parser"
-
 import { CannotAccess, DedeletedError, InvalidFormat } from "../errors.js"
-import { getInlines, getTagName } from "../utils/html.js"
+import { getInlines, getTagName, parseHTML } from "../utils/html.js"
 import { fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
