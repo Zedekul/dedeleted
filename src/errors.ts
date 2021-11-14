@@ -5,6 +5,7 @@ export class DedeletedError extends Error {
 
   public code = 0
   public isDedeletedError = true
+  public skipLogging = true
   public get isPrivate(): boolean { return this.code < 0 }
 }
 
