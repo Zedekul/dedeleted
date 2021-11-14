@@ -39,7 +39,7 @@ export abstract class BaseSource<
   TO extends BackupOptions = BackupOptions,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TR = any
-> implements BackupSource {
+  > implements BackupSource {
   public readonly abstract key: string
   public abstract testURL(url: string): string | undefined
 
@@ -61,6 +61,7 @@ export abstract class BaseSource<
       .set("plainText", false)
       .set("textLengthLimit", 3072)
       .set("htmlFromBrowser", null)
+      .set("verboseLogging", false)
       .done() as BackupOptions & Partial<T>
   }
 
@@ -76,9 +77,15 @@ export abstract class BaseSource<
     options: Partial<TO> = {}
   ): Promise<BackupResult> {
     const o = this.prepareOptions(url, options) as TO
+    if (o.verboseLogging) {
+      console.log(`Backing up [${o.id}] ${url}`)
+    }
     if (!o.force) {
       const existing = await o.checkExisting(this.key, o.id)
       if (existing !== undefined) {
+        if (o.verboseLogging) {
+          console.log("Returning existing result")
+        }
         return existing
       }
     }
@@ -113,7 +120,8 @@ export abstract class BaseSource<
       content: raw.parsedHTML.outerHTML,
       files,
       otherData: raw.data,
-      reposted
+      reposted,
+      justCreated: true
     }
     if (options.createTelegraphPage) {
       result.pages = await this.uploadPages(raw, result, options)
@@ -244,8 +252,8 @@ export abstract class BaseSource<
         children: [raw.source]
       }, `\n发表于：${dateToString(raw.createdAt)}`,
         raw.updatedAt === undefined
-        ? ""
-        : `\n更新于：${dateToString(raw.updatedAt)}`
+          ? ""
+          : `\n更新于：${dateToString(raw.updatedAt)}`
       ]
     })
     if (raw.otherFiles.length > 0) {

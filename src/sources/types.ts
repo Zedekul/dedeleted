@@ -30,6 +30,8 @@ export interface BackupOptions {
   backupReposted: boolean
 
   htmlFromBrowser: string | null
+
+  verboseLogging: boolean
 }
 
 export type BackupFileType = "image" | "video" | "file" | "auto"
@@ -63,6 +65,7 @@ export interface BackupResult<T = any> {
   id: string
   sourceKey: string
   source: string
+  justCreated?: true
   pages: TelegraphPage[]
 
   authorName?: string
