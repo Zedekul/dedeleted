@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid"
 import { downloadFile, request } from "../utils/request.js"
 import { UploadFunction } from "../utils/types.js"
 import { CreateFailed, DedeletedError, UploadFailed } from "../errors.js"
-import { TelegraphAccount, TelegraphContentNode, TelegraphFile, TelegraphPage } from "./types.js"
+import { TelegraphAccount, TelegraphAccountInfo, TelegraphContentNode, TelegraphFile, TelegraphPage } from "./types.js"
 
 const TelegraphURL = "https://telegra.ph"
 const TelegraphAPI = "https://api.telegra.ph"
@@ -27,15 +27,33 @@ export const createAccount = async (
   })
   const created = await response.json() as {
     ok: boolean, error?: string,
-    result: TelegraphAccount & { auth_url?: string }
+    result: TelegraphAccount & Partial<TelegraphAccountInfo>
   }
   if (created === undefined || !created.ok) {
-    throw new CreateFailed(created === undefined ? "telegraph page" : created.error)
+    throw new CreateFailed(created === undefined ? "Telegraph account" : created.error)
   }
-  const page = created.result
-  delete page.auth_url
-  return page
+  const account = created.result
+  delete account.auth_url
+  delete account.page_count
+  return account
+}
 
+export const getAccountInfo = async (token: string): Promise<TelegraphAccountInfo> => {
+  const response = await request(`${TelegraphAPI}/getAccountInfo`, "POST", undefined, {
+    body: JSON.stringify({
+      access_token: token,
+      fields: ["short_name", "author_name", "author_url", "auth_url", "page_count"]
+    }),
+    headers: { "Content-Type": "application/json" }
+  })
+  const data = await response.json() as {
+    ok: boolean, error?: string,
+    result: TelegraphAccountInfo
+  }
+  if (data === undefined || !data.ok) {
+    throw new DedeletedError(data === undefined ? "" : data.error)
+  }
+  return data.result
 }
 
 // Sorry for my hard-coded path.

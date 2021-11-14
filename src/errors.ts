@@ -1,5 +1,5 @@
 export class DedeletedError extends Error {
-  constructor(m: string, public baseError?: Error) {
+  constructor(m?: string, public baseError?: Error) {
     super(m)
   }
 

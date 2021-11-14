@@ -7,6 +7,14 @@ export interface TelegraphAccount {
   author_url?: string
 }
 
+export interface TelegraphAccountInfo {
+  short_name: string
+  author_name: string
+  author_url: string
+  auth_url: string,
+  page_count: number
+}
+
 export type TelegraphContentNode = string | TelegraphContentNodeElement
 
 export interface TelegraphContentNodeElement {
