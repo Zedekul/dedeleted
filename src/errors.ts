@@ -11,34 +11,34 @@ export class DedeletedError extends Error {
 export class ConfigError extends DedeletedError {
   public code = -1
   constructor(public ctx?: string, public baseError?: Error) {
-    super(`Config error: ${ctx}`, baseError)
+    super(`配置错误: ${ctx}`, baseError)
   }
 }
 
 export class InvalidFormat extends DedeletedError {
   public code = 1
   constructor(public ctx?: string, public baseError?: Error) {
-    super(`Invalid format: ${ctx}`, baseError)
+    super(`格式错误: ${ctx}`, baseError)
   }
 }
 
 export class CannotAccess extends DedeletedError {
   public code = 2
   constructor(public ctx?: string, public baseError?: Error) {
-    super(`Cannot access or already deleted: ${ctx}`, baseError)
+    super(`需要登录才能访问或者已经被删除: ${ctx}`, baseError)
   }
 }
 
 export class CreateFailed extends DedeletedError {
   public code = 3
   constructor(public ctx?: string, public baseError?: Error) {
-    super(`Create failed: ${ctx}`, baseError)
+    super(`创建失败: ${ctx}`, baseError)
   }
 }
 
 export class UploadFailed extends DedeletedError {
   public code = 4
   constructor(public ctx?: string, public baseError?: Error) {
-    super(`Upload failed: ${ctx}`, baseError)
+    super(`上传失败: ${ctx}`, baseError)
   }
 }

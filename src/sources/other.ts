@@ -79,6 +79,5 @@ export class Other extends BaseSource<BackupOptions, {}> {
       data: {},
       reposted: []
     }
-    return {} as BackupContent<{}>
   }
 }

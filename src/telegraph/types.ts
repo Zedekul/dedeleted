@@ -1,10 +1,10 @@
 import { HTMLElement } from "node-html-parser"
 
 export interface TelegraphAccount {
-  accessToken: string
-  shortName: string
-  authorName?: string
-  authorURL?: string
+  access_token: string
+  short_name: string
+  author_name?: string
+  author_url?: string
 }
 
 export type TelegraphContentNode = string | TelegraphContentNodeElement
@@ -29,6 +29,8 @@ export interface TelegraphPage {
   url: string
   title: string
   description: string
+  author_name: string
+  views: number
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

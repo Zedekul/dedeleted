@@ -9,8 +9,34 @@ import { CreateFailed, DedeletedError, UploadFailed } from "../errors.js"
 import { TelegraphAccount, TelegraphContentNode, TelegraphFile, TelegraphPage } from "./types.js"
 
 const TelegraphURL = "https://telegra.ph"
-const TelegraphAPI = "https://api.telegra.ph/"
+const TelegraphAPI = "https://api.telegra.ph"
 const TelegraphUploadAPI = "https://telegra.ph/upload"
+
+export const createAccount = async (
+  shortName: string,
+  authorName: string = "",
+  authorURL: string = ""
+): Promise<TelegraphAccount> => {
+  const response = await request(`${TelegraphAPI}/createAccount`, "POST", undefined, {
+    body: JSON.stringify({
+      short_name: shortName,
+      author_name: authorName,
+      author_url: authorURL
+    }),
+    headers: { "Content-Type": "application/json" }
+  })
+  const created = await response.json() as {
+    ok: boolean, error?: string,
+    result: TelegraphAccount & { auth_url?: string }
+  }
+  if (created === undefined || !created.ok) {
+    throw new CreateFailed(created === undefined ? "telegraph page" : created.error)
+  }
+  const page = created.result
+  delete page.auth_url
+  return page
+
+}
 
 // Sorry for my hard-coded path.
 const getDefaultImage = (source: string): TelegraphFile => ({
@@ -71,19 +97,23 @@ export const createPage = async (
   account: TelegraphAccount,
   authorName?: string, authorURL?: string,
 ): Promise<TelegraphPage> => {
-  const response = await request(`${TelegraphAPI}createPage`, "POST", undefined, {
+  const response = await request(`${TelegraphAPI}/createPage`, "POST", undefined, {
     body: JSON.stringify({
-      access_token: account.accessToken,
+      access_token: account.access_token,
       title, content,
-      author_name: authorName ?? account.authorName,
-      author_url: authorURL ?? account.authorURL
+      author_name: authorName ?? account.author_name,
+      author_url: authorURL ?? account.author_url
     }),
     headers: { "Content-Type": "application/json" }
   })
-  const created = await response.json() as { ok: boolean, error?: string, result: TelegraphPage }
+  const created = await response.json() as {
+    ok: boolean, error?: string,
+    result: TelegraphPage & { can_edit?: boolean }
+  }
   if (created === undefined || !created.ok) {
     throw new CreateFailed(created === undefined ? "telegraph page" : created.error)
   }
-  const page = created.result as TelegraphPage
+  const page = created.result
+  delete page.can_edit
   return page
 }

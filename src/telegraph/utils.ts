@@ -9,13 +9,15 @@ import { DOMToNodeHandler, TelegraphAccount, TelegraphContentNode, TelegraphCont
 
 export const DefaultTelegraphAccount: TelegraphAccount = (() => {
   if (DEFAULT_TELEGRAPH_ACCOUNT_TOKEN === undefined) {
-    throw new ConfigError("DEFAULT_TELEGRAPH_ACCOUNT_TOKEN")
+    throw new ConfigError(
+      "Set `DEFAULT_TELEGRAPH_ACCOUNT_TOKEN` from https://api.telegra.ph/createAccount?short_name=Dedeleted"
+    )
   }
   return {
-    accessToken: DEFAULT_TELEGRAPH_ACCOUNT_TOKEN,
-    shortName: "Dedeleted",
-    authorName: "Dedeleted",
-    authorURL: "https://t.me/DedeletedBot"
+    access_token: DEFAULT_TELEGRAPH_ACCOUNT_TOKEN,
+    short_name: "Dedeleted",
+    author_name: "Dedeleted",
+    author_url: "https://t.me/DedeletedBot"
   } as TelegraphAccount
 })()
 

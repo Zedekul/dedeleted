@@ -1,4 +1,5 @@
 import assert from "node:assert"
+import { Readable } from "node:stream"
 
 import { HTMLElement, parse as parseHTML } from "node-html-parser"
 
@@ -9,7 +10,6 @@ import { downloadFile, fetchPage } from "../utils/request.js"
 import { BaseSource } from "./bases.js"
 import { BackupContent, BackupFile, BackupOptions } from "./types.js"
 import { getInlines, getTagName } from "../utils/html.js"
-import { Readable } from "node:stream"
 
 export type WeiboOptions = {
 } & BackupOptions
@@ -48,7 +48,7 @@ export type WeiboDetail = {
 const WeiboMobileURL = "https://m.weibo.cn"
 const WeiboURL = "https://www.weibo.com"
 const WeiboAPI = "https://m.weibo.cn/statuses/show?id="
-const WeiboURLRegex = /^(https?:\/\/)?(m\.)?weibo\.(com|cn)\/.*$/
+const WeiboURLRegex = /^(https?:\/\/)?(.*?\.)?weibo\.(com|cn)\/.*$/i
 const WeiboPathRegex = /(?<type>detail|status|\d+)\/(?<post_id>.+?)\/?$/
 type WeiboTypes = "post" | "article"
 
@@ -90,7 +90,6 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
   public readonly key = "weibo"
 
   public testURL(url: string): string | undefined {
-    url = url.toLowerCase()
     if (!WeiboURLRegex.test(url)) {
       return undefined
     }

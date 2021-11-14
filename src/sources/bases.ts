@@ -109,6 +109,7 @@ export abstract class BaseSource<
       sourceKey: this.key,
       source: raw.source,
       pages: [],
+      authorName: raw.authorName,
       content: raw.parsedHTML.outerHTML,
       files,
       otherData: raw.data,

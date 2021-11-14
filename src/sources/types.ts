@@ -65,6 +65,7 @@ export interface BackupResult<T = any> {
   source: string
   pages: TelegraphPage[]
 
+  authorName?: string
   content: string
   files: BackupFile[]
 

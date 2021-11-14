@@ -27,7 +27,7 @@ const getCreatedAt = (htmlDOM: HTMLElement): Date => {
 }
 
 const WechatURL = "https://mp.weixin.qq.com"
-const WechatURLRegex = /^(https?:\/\/)?mp\.weixin\.qq\.com\/.*$/
+const WechatURLRegex = /^(https?:\/\/)?mp\.weixin\.qq\.com\/.*$/i
 const WechatPathRegex = /^\/(?<key>.+)\/(?<postID>.+?)\/?(?<query>\?.*)?$/
 type WechatTypes = "article"
 
@@ -35,7 +35,6 @@ export class Wechat extends BaseSource<WechatOptions, WechatData> {
   public readonly key = "wechat"
 
   public testURL(url: string): string | undefined {
-    url = url.toLowerCase()
     if (!WechatURLRegex.test(url)) {
       return undefined
     }

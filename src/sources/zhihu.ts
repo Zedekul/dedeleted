@@ -19,7 +19,7 @@ export type ZhihuData = {
 
 const ZhihuZhuanlanURL = "https://zhuanlan.zhihu.com"
 const ZhihuURL = "https://www.zhihu.com"
-const ZhihuURLRegex = /^(https?:\/\/)?(.*?\.)?zhihu\.com\/.*$/
+const ZhihuURLRegex = /^(https?:\/\/)?(.*?\.)?zhihu\.com\/.*$/i
 const ZhihuPathRegex = /(?<key>(answer)|(p)|(pin)|(question))\/(?<id>\d*)$/
 type ZhihuTypes = "answer" | "zhuanlan" | "pin" | "question"
 
@@ -27,7 +27,6 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
   public readonly key = "zhihu"
 
   public testURL(url: string): string | undefined {
-    url = url.toLowerCase()
     if (!ZhihuURLRegex.test(url)) {
       return undefined
     }

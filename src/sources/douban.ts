@@ -15,7 +15,7 @@ export type DoubanData = {
 }
 
 const DoubanURL = "https://www.douban.com"
-const DoubanURLRegex = /^(https?:\/\/)?(.*?\.)?douban\.com\/.*$/
+const DoubanURLRegex = /^(https?:\/\/)?(.*?\.)?douban\.com\/.*$/i
 const DoubanPathRegex = /(people\/(?<userID>\d+)\/)?(?<key>(review)|(note)|(status)|(topic))\/(?<id>\d+)\/?$/
 type DoubanTypes = "review" | "note" | "status" | "topic"
 
@@ -23,7 +23,6 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
   public readonly key = "douban"
 
   public testURL(url: string): string | undefined {
-    url = url.toLowerCase()
     if (!DoubanURLRegex.test(url)) {
       return undefined
     }
@@ -62,7 +61,7 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
     const type = id.split("-")[0] as DoubanTypes
     switch (type) {
       case "review": return "书评/影评"
-      case "note": return "笔记"
+      case "note": return "日记"
       case "status": return "广播"
       case "topic": return "话题"
       default: throw new InvalidFormat(type)
