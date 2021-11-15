@@ -38,12 +38,11 @@ export const s3UploadFile = async (
     Key: pathToUpload,
     StorageClass: "STANDARD_IA"
   }
-  console.log(params)
   if (s3Options !== undefined) {
     Object.assign(params, s3Options)
   }
   await s3.upload(params).promise()
-  return `https://${ bucket }.s3-${ region }.amazonaws.com/${ pathToUpload }`
+  return `https://${ bucket }.s3.amazonaws.com/${ pathToUpload }`
 }
 
 export const s3CreateUploadFunction = (

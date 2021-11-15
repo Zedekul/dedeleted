@@ -1,8 +1,8 @@
-import { HTMLElement, Node } from "node-html-parser"
+import { HTMLElement, Node, Options } from "node-html-parser"
 import parse from "node-html-parser"
 
-export const parseHTML = (html: string): HTMLElement => {
-  return parse(html)
+export const parseHTML = (html: string, options: Partial<Options> = {}): HTMLElement => {
+  return parse(html, options)
 }
 
 export const getDownloadable = (url: string | undefined, baseURL?: string): string | undefined => {

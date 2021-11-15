@@ -54,6 +54,8 @@ export const domToNodes = <T = any>(
         tag,
         attrs: "href" in dom.attributes ? { href: dom.attributes.href } : undefined
       }]
+    } else if (tag === "script" || tag === "style") {
+      return [ "" ]
     } else {
       nodes = [{ tag }]
     }

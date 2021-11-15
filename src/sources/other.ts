@@ -60,7 +60,7 @@ export class Other extends BaseSource<BackupOptions, {}> {
       return await this.backupBinary(url, options)
     }
     html = await response.text()
-    const htmlDOM = parseHTML(html)
+    const htmlDOM = parseHTML(html, {comment: false})
     const title = selectText(htmlDOM, "title") || `其它存档：${id}`
     const parsedHTML = trimNode(htmlDOM) as HTMLElement
     const inlineNodes = getInlines(

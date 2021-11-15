@@ -92,7 +92,7 @@ export abstract class BaseSource<
     const s3 = o.awsS3Settings
     const fallback = s3 === null
       ? undefined
-      : s3CreateUploadFunction("dedeleted", s3.accessPoint, s3.accountID, s3.bucket, s3.region)
+      : s3CreateUploadFunction(o.sourceKey, s3.accessPoint, s3.accountID, s3.bucket, s3.region)
     if (!url) {
       url = this.getStandardURL(o.id)
     }
