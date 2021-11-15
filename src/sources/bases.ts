@@ -54,7 +54,7 @@ export abstract class BaseSource<
       .set("createTelegraphPage", true)
       .set("telegraphAccount", DefaultTelegraphAccount)
       .set("allowMissingContent", true)
-      .set("uploadVideos", false)
+      .set("uploadVideos", true)
       .set("inlineImages", true)
       .set("inlineLinks", false)
       .set("awsS3Settings", null)
