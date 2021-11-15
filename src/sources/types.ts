@@ -20,9 +20,9 @@ export interface BackupOptions {
 
   allowMissingContent: boolean
   uploadVideos: boolean
-  awsS3Settings: AWSS3Settings | null
   inlineImages: boolean
   inlineLinks: boolean
+  awsS3Settings: AWSS3Settings | null
 
   plainText: boolean
   textLengthLimit: number

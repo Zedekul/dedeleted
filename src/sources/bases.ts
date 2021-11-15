@@ -60,6 +60,7 @@ export abstract class BaseSource<
       .set("awsS3Settings", null)
       .set("plainText", false)
       .set("textLengthLimit", 3072)
+      .set("backupReposted", true)
       .set("htmlFromBrowser", null)
       .set("verboseLogging", false)
       .done() as BackupOptions & Partial<T>

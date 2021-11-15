@@ -1,5 +1,5 @@
+const parse = require("node-html-parser").default
 import { HTMLElement, Node, Options } from "node-html-parser"
-import parse from "node-html-parser"
 
 export const parseHTML = (html: string, options: Partial<Options> = {}): HTMLElement => {
   return parse(html, options)

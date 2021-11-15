@@ -1,12 +1,12 @@
 import { Readable } from "stream"
 import { HTMLElement } from "node-html-parser"
 
+import { sha256Hash } from "../utils/common.js"
 import { getInlines, parseHTML, selectText, trimNode } from "../utils/html.js"
 import { downloadFile, fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
 import { BackupContent, BackupFile, BackupOptions } from "./types.js"
-import { sha256Hash } from "src/utils/common.js"
 
 // Fallback type for all unsupported sources
 export class Other extends BaseSource<BackupOptions, {}> {
