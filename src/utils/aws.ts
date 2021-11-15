@@ -38,6 +38,7 @@ export const s3UploadFile = async (
     Key: pathToUpload,
     StorageClass: "STANDARD_IA"
   }
+  console.log(params)
   if (s3Options !== undefined) {
     Object.assign(params, s3Options)
   }
@@ -53,7 +54,7 @@ export const s3CreateUploadFunction = (
     stream.fileType === undefined ? "" : `.${ stream.fileType.ext }`
   }`)
   return await s3UploadFile(
-    stream, pathname, accessPoint, bucket, accountID, region,
+    stream, pathname, accessPoint, accountID, bucket, region,
     stream.fileType === undefined ? undefined : {
       ContentType: stream.fileType.mime
     }

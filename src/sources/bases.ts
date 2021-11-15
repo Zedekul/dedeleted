@@ -250,7 +250,12 @@ export abstract class BaseSource<
         tag: "a",
         attrs: { href: raw.source },
         children: [raw.source]
-      }, `\n发表于：${dateToString(raw.createdAt)}`,
+      }]
+    })
+    nodes.unshift({
+      tag: "p",
+      children: [
+        `\n发表于：${dateToString(raw.createdAt)}`,
         raw.updatedAt === undefined
           ? ""
           : `\n更新于：${dateToString(raw.updatedAt)}`
