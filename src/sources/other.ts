@@ -6,6 +6,7 @@ import { downloadFile, fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
 import { BackupContent, BackupFile, BackupOptions } from "./types.js"
+import { sha256Hash } from "src/utils/common.js"
 
 // Fallback type for all unsupported sources
 export class Other extends BaseSource<BackupOptions, {}> {
@@ -16,11 +17,11 @@ export class Other extends BaseSource<BackupOptions, {}> {
   }
 
   getID(url: string): string {
-    return url
+    return sha256Hash(url)
   }
 
   getStandardURL(id: string): string {
-    return id
+    return `other-${id}`
   }
 
   getTypeName(_: string): string {

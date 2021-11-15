@@ -1,3 +1,5 @@
+import { createHash } from "crypto"
+
 export const dateToString = (date: Date): string =>
   date.toLocaleString("zh-CN", { timeZone: "Asia/Shanghai"})
 
@@ -17,3 +19,6 @@ export const isImageURL = (src?: string, base?: string): boolean => {
     return false
   }
 }
+
+export const sha256Hash = (str: string): string =>
+  createHash("sha256").update(str).digest("hex")
