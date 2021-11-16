@@ -74,7 +74,7 @@ export class Zhihu extends BaseSource<ZhihuOptions> {
     try {
       const initialData = htmlDOM.querySelector("#js-initialData")
       assert(initialData !== null)
-      data = JSON.parse(initialData.text)
+      data = JSON.parse(initialData.rawText)
         .initialState
       assert(data !== undefined)
     } catch (e) {
