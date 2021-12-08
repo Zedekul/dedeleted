@@ -186,9 +186,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
     const parsedHTML = parseHTML(weibo.text)
     for (const node of parsedHTML.querySelectorAll("span.url-icon > img")) {
       const alt = node.getAttribute("alt")
-      if (alt !== undefined) {
-        node.replaceWith(alt)
-      }
+      node.replaceWith(alt === undefined ? "" : alt)
     }
     const inlineNodes = getInlines(
       parsedHTML,
