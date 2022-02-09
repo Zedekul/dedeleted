@@ -38,8 +38,12 @@ export const request = async (
   if (options.headers === undefined) {
     options.headers = {}
   }
+  const headers = options.headers as { [key: string]: string }
   if (cookie !== undefined) {
-    (options.headers as { [key: string]: string }).cookie = cookie
+    headers.cookie = cookie
+  }
+  if (!("user-agent" in headers || "User-Agent" in headers)) {
+    headers["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 Edg/98.0.1108.43"
   }
   const response = await fetch(url, options)
   if (setCookie !== undefined) {
