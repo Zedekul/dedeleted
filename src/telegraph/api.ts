@@ -104,7 +104,11 @@ export const uploadMediaFile = async (
       return getDefaultImage(source)
     }
     const stream2 = await download()
-    uploaded = [{ src: await fallback(stream2 as Readable, tphFile.id) }]
+    try {
+      uploaded = [{ src: await fallback(stream2 as Readable, tphFile.id) }]
+    } catch {
+      return getDefaultImage(source)
+    }
   }
   tphFile.path = new URL(uploaded[0].src, TelegraphURL).href
   return tphFile
