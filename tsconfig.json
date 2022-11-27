@@ -7,7 +7,7 @@
     "target": "es2020",
     "noImplicitAny": true,
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "outDir": "./lib",
     "strict": true,
     "baseUrl": ".",

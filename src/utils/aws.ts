@@ -4,7 +4,7 @@ import { Readable } from "stream"
 
 import AWS from "aws-sdk/global.js"
 import S3 from "aws-sdk/clients/s3.js"
-import FileType from "file-type"
+import {fileTypeStream} from "file-type"
 
 import { UploadFunction } from "./types.js"
 
@@ -48,7 +48,7 @@ export const s3UploadFile = async (
 export const s3CreateUploadFunction = (
   pathPrefix: string, accessPoint: string, accountID: string, bucket: string, region?: string
 ): UploadFunction => async (file, id) => {
-  const stream = await FileType.stream(file)
+  const stream = await fileTypeStream(file)
   const pathname = path.join(pathPrefix, `${ id }${
     stream.fileType === undefined ? "" : `.${ stream.fileType.ext }`
   }`)

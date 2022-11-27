@@ -41,7 +41,7 @@ export class Other extends BaseSource<BackupOptions, {}> {
       title: `其它存档：${fileName}`,
       createdAt: new Date(),
       source: url,
-      parsedHTML: new HTMLElement("div", {}, "", null),
+      parsedHTML: new HTMLElement("div", {}, "", null, [-1, -1]),
       inlineNodes: [],
       otherFiles,
       data: {},

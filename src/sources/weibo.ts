@@ -197,7 +197,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
       if (getTagName(node) === "a") {
         const href = node.getAttribute("href")
         if (href !== undefined && isImageURL(href, url)) {
-          const img = new HTMLElement("img", {}, "", node.parentNode)
+          const img = new HTMLElement("img", {}, "", node.parentNode, [-1, -1])
           img.setAttribute("src", href)
           node.replaceWith(img)
           return img

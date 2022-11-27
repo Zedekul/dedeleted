@@ -8,6 +8,7 @@ import { BaseSource } from "./bases.js"
 import { BackupContent, BackupOptions } from "./types.js"
 
 export type DoubanOptions = {
+  // ...
 } & BackupOptions
 
 export type DoubanData = {
