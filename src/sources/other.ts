@@ -1,17 +1,18 @@
-import { Readable } from "stream"
-import { HTMLElement } from "node-html-parser"
+import { Readable } from 'stream'
+import { HTMLElement } from 'node-html-parser'
 
-import { sha256Hash } from "../utils/common.js"
-import { getInlines, parseHTML, selectText, trimNode } from "../utils/html.js"
-import { downloadFile, fetchPage } from "../utils/request.js"
+import { sha256Hash } from '../utils/common.js'
+import { getInlines, parseHTML, selectText, trimNode } from '../utils/html.js'
+import { downloadFile, fetchPage } from '../utils/request.js'
 
-import { BaseSource } from "./bases.js"
-import { BackupContent, BackupFile, BackupOptions } from "./types.js"
+import { BaseSource } from './bases.js'
+import { BackupContent, BackupFile, BackupOptions } from './types.js'
 
 // Fallback type for all unsupported sources
-export class Other extends BaseSource<BackupOptions, {}> {
-  public readonly key = "other"
+export class Other extends BaseSource<BackupOptions> {
+  public readonly key = 'other'
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public testURL(url: string): string | undefined {
     return undefined
   }
@@ -24,44 +25,52 @@ export class Other extends BaseSource<BackupOptions, {}> {
     return `other-${id}`
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getTypeName(_: string): string {
-    return "其它"
+    return '其它'
   }
 
-  async backupBinary(url: string, options: BackupOptions): Promise<BackupContent<{}>> {
+  async backupBinary(
+    url: string,
+    options: BackupOptions
+  ): Promise<BackupContent<Record<string, never>>> {
     const { id } = options
-    const otherFiles: BackupFile[] = [{
-      type: "auto",
-      source: url,
-      download: async () => await downloadFile(url, await options.getCookie(url)) as Readable
-    }]
-    const fileName = url.split("/").pop() || url
+    const otherFiles: BackupFile[] = [
+      {
+        type: 'auto',
+        source: url,
+        download: async () =>
+          (await downloadFile(url, await options.getCookie(url))) as Readable,
+      },
+    ]
+    const fileName = url.split('/').pop() || url
     return {
       id,
       title: `其它存档：${fileName}`,
       createdAt: new Date(),
       source: url,
-      parsedHTML: new HTMLElement("div", {}, "", null, [-1, -1]),
+      parsedHTML: new HTMLElement('div', {}, '', null, [-1, -1]),
       inlineNodes: [],
       otherFiles,
       data: {},
-      reposted: []
+      reposted: [],
     }
   }
 
-  async backupInner(url: string, options: BackupOptions): Promise<BackupContent<{}>> {
+  async backupInner(
+    url: string,
+    options: BackupOptions
+  ): Promise<BackupContent<Record<string, never>>> {
     let html = options.htmlFromBrowser || undefined
-    const response = await fetchPage(
-      url, options.getCookie, options.setCookie
-    )
-    const contentType = response.headers.get("content-type")
+    const response = await fetchPage(url, options.getCookie, options.setCookie)
+    const contentType = response.headers.get('content-type')
     const { id } = options
-    if (contentType && !contentType.includes("text/")) {
+    if (contentType && !contentType.includes('text/')) {
       return await this.backupBinary(url, options)
     }
     html = await response.text()
-    const htmlDOM = parseHTML(html, {comment: false})
-    const title = selectText(htmlDOM, "title") || `其它存档：${id}`
+    const htmlDOM = parseHTML(html, { comment: false })
+    const title = selectText(htmlDOM, 'title') || `其它存档：${id}`
     const parsedHTML = trimNode(htmlDOM) as HTMLElement
     const inlineNodes = getInlines(
       parsedHTML,
@@ -78,7 +87,7 @@ export class Other extends BaseSource<BackupOptions, {}> {
       inlineNodes,
       otherFiles: [],
       data: {},
-      reposted: []
+      reposted: [],
     }
   }
 }

@@ -1,4 +1,4 @@
-import { HTMLElement } from "node-html-parser"
+import { HTMLElement } from 'node-html-parser'
 
 export interface TelegraphAccount {
   access_token: string
@@ -11,18 +11,18 @@ export interface TelegraphAccountInfo {
   short_name: string
   author_name: string
   author_url: string
-  auth_url: string,
+  auth_url: string
   page_count: number
 }
 
 export type TelegraphContentNode = string | TelegraphContentNodeElement
 
 export interface TelegraphContentNodeElement {
-  tag: string,
+  tag: string
   attrs?: {
-    href?: string,
+    href?: string
     src?: string
-  },
+  }
   children?: TelegraphContentNode[]
 }
 

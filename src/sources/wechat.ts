@@ -1,21 +1,26 @@
-import { HTMLElement } from "node-html-parser"
+import { HTMLElement } from 'node-html-parser'
 
-import { InvalidFormat } from "../errors.js"
-import { getInlines, getTagName, parseHTML, selectText, trimNode } from "../utils/html.js"
-import { fetchPage } from "../utils/request.js"
+import { InvalidFormat } from '../errors.js'
+import {
+  getInlines,
+  getTagName,
+  parseHTML,
+  selectText,
+  trimNode,
+} from '../utils/html.js'
+import { fetchPage } from '../utils/request.js'
 
-import { BaseSource } from "./bases.js"
-import { BackupContent, BackupOptions } from "./types.js"
+import { BaseSource } from './bases.js'
+import { BackupContent, BackupOptions } from './types.js'
 
 export type WechatOptions = {
+  // ...
 } & BackupOptions
 
-export type WechatData = {
-  // ...
-}
+export type WechatData = Record<string, never>
 
 const getCreatedAt = (htmlDOM: HTMLElement): Date => {
-  for (const node of htmlDOM.querySelectorAll("script")) {
+  for (const node of htmlDOM.querySelectorAll('script')) {
     const m = /var ct = "(?<createTime>\d+)";/.exec(node.text)
     if (m === null || m.groups === undefined) {
       continue
@@ -26,13 +31,13 @@ const getCreatedAt = (htmlDOM: HTMLElement): Date => {
   return new Date()
 }
 
-const WechatURL = "https://mp.weixin.qq.com"
+const WechatURL = 'https://mp.weixin.qq.com'
 const WechatURLRegex = /^(https?:\/\/)?mp\.weixin\.qq\.com\/.*$/i
 const WechatPathRegex = /^\/(?<key>.+)\/(?<postID>.+?)\/?(?<query>\?.*)?$/
-type WechatTypes = "article"
+type WechatTypes = 'article'
 
 export class Wechat extends BaseSource<WechatOptions, WechatData> {
-  public readonly key = "wechat"
+  public readonly key = 'wechat'
 
   public testURL(url: string): string | undefined {
     if (!WechatURLRegex.test(url)) {
@@ -52,42 +57,52 @@ export class Wechat extends BaseSource<WechatOptions, WechatData> {
       throw new InvalidFormat(url)
     }
     const { key, postID } = m.groups
-    if (key !== "s") {
+    if (key !== 's') {
       throw new InvalidFormat(url)
     }
     return `article-${postID}`
   }
 
   getStandardURL(id: string): string {
-    const [ type, postID ] = id.split("-") as [WechatTypes, string]
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_type, postID] = id.split('-') as [WechatTypes, string]
     return `${WechatURL}/s/${postID}`
   }
 
   getTypeName(urlOrid: string): string {
     const id = WechatURLRegex.test(urlOrid) ? this.getID(urlOrid) : urlOrid
-    const type = id.split("-")[0] as WechatTypes
+    const type = id.split('-')[0] as WechatTypes
     switch (type) {
-      case "article": return "公众号文章"
-      default: throw new InvalidFormat(type)
+      case 'article':
+        return '公众号文章'
+      default:
+        throw new InvalidFormat(type)
     }
   }
 
-  async backupInner(url: string, options: WechatOptions): Promise<BackupContent<WechatData>> {
-    const html = options.htmlFromBrowser || await (await fetchPage(
-      url, options.getCookie, options.setCookie
-    )).text()
+  async backupInner(
+    url: string,
+    options: WechatOptions
+  ): Promise<BackupContent<WechatData>> {
+    const html =
+      options.htmlFromBrowser ||
+      (await (
+        await fetchPage(url, options.getCookie, options.setCookie)
+      ).text())
     const htmlDOM = parseHTML(html)
-    let content = htmlDOM.querySelector("#js_content")
+    let content = htmlDOM.querySelector('#js_content')
     if (content === null) {
       throw new InvalidFormat(url)
     }
     content = trimNode(content) as HTMLElement
     const { id } = options
-    const [type, postID] = id.split("-") as [WechatTypes, string]
-    const title = selectText(htmlDOM, "#activity-name") || `微信存档 - ${postID}`
-    const authorName = selectText(htmlDOM, "#js_name") || "未知"
-    const authorURL = ""  // TODO
-    const metaString = `公众号：${selectText(htmlDOM, ".rich_media_meta_text")}`
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_type, postID] = id.split('-') as [WechatTypes, string]
+    const title =
+      selectText(htmlDOM, '#activity-name') || `微信存档 - ${postID}`
+    const authorName = selectText(htmlDOM, '#js_name') || '未知'
+    const authorURL = '' // TODO
+    const metaString = `公众号：${selectText(htmlDOM, '.rich_media_meta_text')}`
     const createdAt = getCreatedAt(htmlDOM)
     const inlineNodes = getInlines(
       content,
@@ -96,10 +111,10 @@ export class Wechat extends BaseSource<WechatOptions, WechatData> {
       options.inlineLinks
     )
     for (const node of inlineNodes) {
-      if (getTagName(node) === "img") {
-        const src = node.getAttribute("data-src")
+      if (getTagName(node) === 'img') {
+        const src = node.getAttribute('data-src')
         if (src !== undefined) {
-          node.setAttribute("src", src)
+          node.setAttribute('src', src)
         }
       }
     }
@@ -115,7 +130,7 @@ export class Wechat extends BaseSource<WechatOptions, WechatData> {
       otherFiles: [],
       metaString,
       data: {},
-      reposted: []
+      reposted: [],
     }
   }
 }

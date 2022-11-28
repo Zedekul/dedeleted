@@ -11,14 +11,9 @@
     "outDir": "./lib",
     "strict": true,
     "baseUrl": ".",
-    "typeRoots": [
-        "./typings",
-        "node_modules/@types"
-    ],
+    "typeRoots": ["./typings", "node_modules/@types"],
     "esModuleInterop": true,
     "sourceMap": true
   },
-  "include": [
-    "./src"
-  ]
+  "include": ["./src"]
 }

@@ -1,15 +1,20 @@
-const parse = require("node-html-parser").default
-import { HTMLElement, Node, Options } from "node-html-parser"
+import { parse, HTMLElement, Node, Options } from 'node-html-parser'
 
-export const parseHTML = (html: string, options: Partial<Options> = {}): HTMLElement => {
+export const parseHTML = (
+  html: string,
+  options: Partial<Options> = {}
+): HTMLElement => {
   return parse(html, options)
 }
 
-export const getDownloadable = (url: string | undefined, baseURL?: string): string | undefined => {
+export const getDownloadable = (
+  url: string | undefined,
+  baseURL?: string
+): string | undefined => {
   try {
     if (url !== undefined) {
       const u = new URL(url, baseURL)
-      if (u.protocol === "http:" || u.protocol === "https:") {
+      if (u.protocol === 'http:' || u.protocol === 'https:') {
         return u.href
       }
     }
@@ -26,18 +31,21 @@ export const getInlines = (
 ): HTMLElement[] => {
   let results = [] as HTMLElement[]
   if (image) {
-    results = results.concat(root.querySelectorAll("img"))
+    results = results.concat(root.querySelectorAll('img'))
   }
   if (video) {
-    results = results.concat(root.querySelectorAll("video"))
+    results = results.concat(root.querySelectorAll('video'))
   }
   if (link) {
-    results = results.concat(root.querySelectorAll("a"))
+    results = results.concat(root.querySelectorAll('a'))
   }
   return results
 }
 
-export const querySelector = (dom: HTMLElement, ...selectors: string[]): HTMLElement | null => {
+export const querySelector = (
+  dom: HTMLElement,
+  ...selectors: string[]
+): HTMLElement | null => {
   for (const s of selectors) {
     const t = dom.querySelector(s)
     if (t) {
@@ -47,14 +55,17 @@ export const querySelector = (dom: HTMLElement, ...selectors: string[]): HTMLEle
   return null
 }
 
-export const selectText = (dom: HTMLElement, ...selectors: string[]): string | null => {
+export const selectText = (
+  dom: HTMLElement,
+  ...selectors: string[]
+): string | null => {
   const t = querySelector(dom, ...selectors)
   return t ? t.text.trim() : null
 }
 
 export const getTagName = (node: Node): string => {
   const s = node as HTMLElement
-  return s.tagName ? s.tagName.toLowerCase() : ""
+  return s.tagName ? s.tagName.toLowerCase() : ''
 }
 
 const isEmptyNode = (node: Node): boolean => {
@@ -63,10 +74,10 @@ const isEmptyNode = (node: Node): boolean => {
   }
   const s = node as HTMLElement
   const tag = getTagName(s)
-  if (tag === "") {
+  if (tag === '') {
     return s.childNodes.length === 0
   }
-  if (tag === "img" || tag === "video") {
+  if (tag === 'img' || tag === 'video') {
     return false
   }
   return s.childNodes.length === 0
@@ -76,16 +87,16 @@ export const trimNode = (node: Node, recursive = true): Node | undefined => {
   if (node.nodeType === 3) {
     // Allow at most 1 empty line
     node.textContent = node.textContent
-      .replace(/\n[^\S\n]+/g, "\n")
-      .replace(/\n\s*\n/g, "\n")
+      .replace(/\n[^\S\n]+/g, '\n')
+      .replace(/\n\s*\n/g, '\n')
     return node
   }
   const dom = node as HTMLElement
   let children = dom.childNodes
   if (recursive) {
     children = children
-      .map(x => trimNode(x, true))
-      .filter(x => x !== undefined) as Node[]
+      .map((x) => trimNode(x, true))
+      .filter((x) => x !== undefined) as Node[]
   }
   while (children.length > 0) {
     const s = children[children.length - 1]
@@ -113,9 +124,9 @@ export const trimNode = (node: Node, recursive = true): Node | undefined => {
   const tag = getTagName(dom)
   if (
     children.length === 1 &&
-    tag !== "" &&
-    tag !== "img" &&
-    tag !== "a" &&
+    tag !== '' &&
+    tag !== 'img' &&
+    tag !== 'a' &&
     getTagName(children[0]) === tag
   ) {
     return children[0]
