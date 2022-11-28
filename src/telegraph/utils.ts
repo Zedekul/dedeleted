@@ -1,29 +1,29 @@
-import { HTMLElement, Node } from 'node-html-parser'
+import { HTMLElement, Node } from "node-html-parser"
 
-import { ConfigError } from '../errors.js'
-import { DEFAULT_TELEGRAPH_ACCOUNT_TOKEN } from '../utils/config.js'
-import { getTagName } from '../utils/html.js'
+import { ConfigError } from "../errors.js"
+import { DEFAULT_TELEGRAPH_ACCOUNT_TOKEN } from "../utils/config.js"
+import { getTagName } from "../utils/html.js"
 
-import { createPage } from './api.js'
+import { createPage } from "./api.js"
 import {
   DOMToNodeHandler,
   TelegraphAccount,
   TelegraphContentNode,
   TelegraphContentNodeElement,
   TelegraphPage,
-} from './types.js'
+} from "./types.js"
 
 export const DefaultTelegraphAccount: TelegraphAccount = (() => {
   if (DEFAULT_TELEGRAPH_ACCOUNT_TOKEN === undefined) {
     throw new ConfigError(
-      'Set `DEFAULT_TELEGRAPH_ACCOUNT_TOKEN` from https://api.telegra.ph/createAccount?short_name=Dedeleted'
+      "Set `DEFAULT_TELEGRAPH_ACCOUNT_TOKEN` from https://api.telegra.ph/createAccount?short_name=Dedeleted"
     )
   }
   return {
     access_token: DEFAULT_TELEGRAPH_ACCOUNT_TOKEN,
-    short_name: 'Dedeleted',
-    author_name: 'Dedeleted',
-    author_url: 'https://t.me/DedeletedBot',
+    short_name: "Dedeleted",
+    author_name: "Dedeleted",
+    author_url: "https://t.me/DedeletedBot",
   } as TelegraphAccount
 })()
 
@@ -37,7 +37,7 @@ export const domToNodes = <T = any>(
     return [domNode.textContent]
   }
   if (domNode.nodeType !== 1) {
-    return ['']
+    return [""]
   }
   const dom = domNode as HTMLElement
   let nodes: TelegraphContentNode[] | undefined
@@ -46,26 +46,26 @@ export const domToNodes = <T = any>(
   }
   if (nodes === undefined) {
     const tag = getTagName(dom)
-    if (tag === 'img' || tag === 'video') {
+    if (tag === "img" || tag === "video") {
       const img = {
         tag,
-        attrs: 'src' in dom.attributes ? { src: dom.attributes.src } : undefined,
+        attrs: "src" in dom.attributes ? { src: dom.attributes.src } : undefined,
       }
       nodes = [
         {
-          tag: 'figure',
+          tag: "figure",
           children: [img],
         },
       ]
-    } else if (tag === 'a') {
+    } else if (tag === "a") {
       nodes = [
         {
           tag,
-          attrs: 'href' in dom.attributes ? { href: dom.attributes.href } : undefined,
+          attrs: "href" in dom.attributes ? { href: dom.attributes.href } : undefined,
         },
       ]
-    } else if (tag === 'script' || tag === 'style') {
-      return ['']
+    } else if (tag === "script" || tag === "style") {
+      return [""]
     } else {
       nodes = [{ tag }]
     }
@@ -98,7 +98,7 @@ export const createPages = async (
   let i = 0
   while (nodes.length > 0) {
     const current: TelegraphContentNode[] = []
-    if (Buffer.byteLength(s, 'utf-8') <= UploadByteLimit) {
+    if (Buffer.byteLength(s, "utf-8") <= UploadByteLimit) {
       for (const each of nodes) {
         current.push(each)
       }

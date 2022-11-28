@@ -1,4 +1,4 @@
-import { parse, HTMLElement, Node, Options } from 'node-html-parser'
+import { parse, HTMLElement, Node, Options } from "node-html-parser"
 
 export const parseHTML = (html: string, options: Partial<Options> = {}): HTMLElement => {
   return parse(html, options)
@@ -8,7 +8,7 @@ export const getDownloadable = (url: string | undefined, baseURL?: string): stri
   try {
     if (url !== undefined) {
       const u = new URL(url, baseURL)
-      if (u.protocol === 'http:' || u.protocol === 'https:') {
+      if (u.protocol === "http:" || u.protocol === "https:") {
         return u.href
       }
     }
@@ -25,13 +25,13 @@ export const getInlines = (
 ): HTMLElement[] => {
   let results = [] as HTMLElement[]
   if (image) {
-    results = results.concat(root.querySelectorAll('img'))
+    results = results.concat(root.querySelectorAll("img"))
   }
   if (video) {
-    results = results.concat(root.querySelectorAll('video'))
+    results = results.concat(root.querySelectorAll("video"))
   }
   if (link) {
-    results = results.concat(root.querySelectorAll('a'))
+    results = results.concat(root.querySelectorAll("a"))
   }
   return results
 }
@@ -53,7 +53,7 @@ export const selectText = (dom: HTMLElement, ...selectors: string[]): string | n
 
 export const getTagName = (node: Node): string => {
   const s = node as HTMLElement
-  return s.tagName ? s.tagName.toLowerCase() : ''
+  return s.tagName ? s.tagName.toLowerCase() : ""
 }
 
 const isEmptyNode = (node: Node): boolean => {
@@ -62,10 +62,10 @@ const isEmptyNode = (node: Node): boolean => {
   }
   const s = node as HTMLElement
   const tag = getTagName(s)
-  if (tag === '') {
+  if (tag === "") {
     return s.childNodes.length === 0
   }
-  if (tag === 'img' || tag === 'video') {
+  if (tag === "img" || tag === "video") {
     return false
   }
   return s.childNodes.length === 0
@@ -74,7 +74,7 @@ const isEmptyNode = (node: Node): boolean => {
 export const trimNode = (node: Node, recursive = true): Node | undefined => {
   if (node.nodeType === 3) {
     // Allow at most 1 empty line
-    node.textContent = node.textContent.replace(/\n[^\S\n]+/g, '\n').replace(/\n\s*\n/g, '\n')
+    node.textContent = node.textContent.replace(/\n[^\S\n]+/g, "\n").replace(/\n\s*\n/g, "\n")
     return node
   }
   const dom = node as HTMLElement
@@ -108,9 +108,9 @@ export const trimNode = (node: Node, recursive = true): Node | undefined => {
   const tag = getTagName(dom)
   if (
     children.length === 1 &&
-    tag !== '' &&
-    tag !== 'img' &&
-    tag !== 'a' &&
+    tag !== "" &&
+    tag !== "img" &&
+    tag !== "a" &&
     getTagName(children[0]) === tag
   ) {
     return children[0]

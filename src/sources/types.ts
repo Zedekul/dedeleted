@@ -1,9 +1,9 @@
-import { Readable } from 'stream'
+import { Readable } from "stream"
 
-import { HTMLElement } from 'node-html-parser'
+import { HTMLElement } from "node-html-parser"
 
-import { TelegraphAccount, TelegraphPage } from '../telegraph/types.js'
-import { AWSS3Settings } from '../utils/aws.js'
+import { TelegraphAccount, TelegraphPage } from "../telegraph/types.js"
+import { AWSS3Settings } from "../utils/aws.js"
 
 // Some of the options may not work if force=false, since result was cached.
 export interface BackupOptions {
@@ -34,7 +34,7 @@ export interface BackupOptions {
   verboseLogging: boolean
 }
 
-export type BackupFileType = 'image' | 'video' | 'file' | 'auto'
+export type BackupFileType = "image" | "video" | "file" | "auto"
 
 export interface BackupFile {
   type: BackupFileType

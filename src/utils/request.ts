@@ -1,14 +1,14 @@
-import http from 'http'
-import https from 'https'
-import { Stream } from 'stream'
+import http from "http"
+import https from "https"
+import { Stream } from "stream"
 
-import fetch, { RequestInit, Response } from 'node-fetch'
+import fetch, { RequestInit, Response } from "node-fetch"
 
-import { CannotAccess } from '../errors.js'
+import { CannotAccess } from "../errors.js"
 
 export const downloadFile = (source: string, cookie?: string): Promise<Stream> =>
   new Promise((resolve, reject) => {
-    const get = source.startsWith('https') ? https.get : http.get
+    const get = source.startsWith("https") ? https.get : http.get
     get(
       source,
       cookie === undefined
@@ -28,7 +28,7 @@ export const downloadFile = (source: string, cookie?: string): Promise<Stream> =
     )
   })
 
-export type MethodType = 'GET' | 'POST' | 'PUT' | 'DELETE'
+export type MethodType = "GET" | "POST" | "PUT" | "DELETE"
 
 export const request = async (
   url: string,
@@ -45,13 +45,13 @@ export const request = async (
   if (cookie !== undefined) {
     headers.cookie = cookie
   }
-  if (!('user-agent' in headers || 'User-Agent' in headers)) {
-    headers['user-agent'] =
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 Edg/98.0.1108.43'
+  if (!("user-agent" in headers || "User-Agent" in headers)) {
+    headers["user-agent"] =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 Edg/98.0.1108.43"
   }
   const response = await fetch(url, options)
   if (setCookie !== undefined) {
-    for (const each of response.headers.raw()['set-cookie'] || []) {
+    for (const each of response.headers.raw()["set-cookie"] || []) {
       await setCookie(each)
     }
   }
@@ -64,5 +64,5 @@ export const fetchPage = async (
   setCookie: (url: string, cookie: string) => Promise<void>,
   options: RequestInit = {}
 ): Promise<Response> => {
-  return await request(url, 'GET', await getCookie(url), options, (c) => setCookie(url, c))
+  return await request(url, "GET", await getCookie(url), options, (c) => setCookie(url, c))
 }

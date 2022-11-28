@@ -1,4 +1,4 @@
-import { HTMLElement } from 'node-html-parser'
+import { HTMLElement } from "node-html-parser"
 
 export interface TelegraphAccount {
   access_token: string

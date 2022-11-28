@@ -1,18 +1,18 @@
-import { Readable } from 'stream'
-import { URL } from 'url'
+import { Readable } from "stream"
+import { URL } from "url"
 
-import { HTMLElement } from 'node-html-parser'
+import { HTMLElement } from "node-html-parser"
 
-import { uploadMediaFile, uploadMediaFromSource } from '../telegraph/api.js'
-import { TelegraphContentNode, TelegraphPage } from '../telegraph/types.js'
-import { createPages, DefaultTelegraphAccount, domToNodes } from '../telegraph/utils.js'
-import { s3CreateUploadFunction } from '../utils/aws.js'
-import { dateToString, isImageURL, shallowCopy } from '../utils/common.js'
-import { getDownloadable, getTagName } from '../utils/html.js'
-import { downloadFile } from '../utils/request.js'
-import { UploadFunction } from '../utils/types.js'
+import { uploadMediaFile, uploadMediaFromSource } from "../telegraph/api.js"
+import { TelegraphContentNode, TelegraphPage } from "../telegraph/types.js"
+import { createPages, DefaultTelegraphAccount, domToNodes } from "../telegraph/utils.js"
+import { s3CreateUploadFunction } from "../utils/aws.js"
+import { dateToString, isImageURL, shallowCopy } from "../utils/common.js"
+import { getDownloadable, getTagName } from "../utils/html.js"
+import { downloadFile } from "../utils/request.js"
+import { UploadFunction } from "../utils/types.js"
 
-import { BackupContent, BackupFile, BackupOptions, BackupResult, BackupSource } from './types.js'
+import { BackupContent, BackupFile, BackupOptions, BackupResult, BackupSource } from "./types.js"
 
 export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) => {
   options = shallowCopy(options)
@@ -43,35 +43,35 @@ export abstract class BaseSource<
 
   protected prepareOptions<T extends BackupOptions>(url: string, options: Partial<T>): Partial<T> {
     return configOptions(options)
-      .setWith('id', () => this.getID(url))
-      .set('sourceKey', this.key)
-      .set('force', false)
-      .set('checkExisting', async () => undefined)
-      .set('getCookie', async () => undefined)
-      .set('setCookie', async () => undefined)
-      .set('createTelegraphPage', true)
-      .set('telegraphAccount', DefaultTelegraphAccount)
-      .set('allowMissingContent', true)
-      .set('uploadVideos', true)
-      .set('inlineImages', true)
-      .set('inlineLinks', false)
-      .set('awsS3Settings', null)
-      .set('plainText', false)
-      .set('textLengthLimit', 3072)
-      .set('backupReposted', true)
-      .set('htmlFromBrowser', null)
-      .set('verboseLogging', false)
+      .setWith("id", () => this.getID(url))
+      .set("sourceKey", this.key)
+      .set("force", false)
+      .set("checkExisting", async () => undefined)
+      .set("getCookie", async () => undefined)
+      .set("setCookie", async () => undefined)
+      .set("createTelegraphPage", true)
+      .set("telegraphAccount", DefaultTelegraphAccount)
+      .set("allowMissingContent", true)
+      .set("uploadVideos", true)
+      .set("inlineImages", true)
+      .set("inlineLinks", false)
+      .set("awsS3Settings", null)
+      .set("plainText", false)
+      .set("textLengthLimit", 3072)
+      .set("backupReposted", true)
+      .set("htmlFromBrowser", null)
+      .set("verboseLogging", false)
       .done() as BackupOptions & Partial<T>
   }
 
-  protected getURL(url: string, protocol = 'https'): URL {
-    if (!url.startsWith('http')) {
+  protected getURL(url: string, protocol = "https"): URL {
+    if (!url.startsWith("http")) {
       url = `${protocol}://${url}`
     }
     return new URL(url)
   }
 
-  public async backup(url = '', options: Partial<TO> = {}): Promise<BackupResult> {
+  public async backup(url = "", options: Partial<TO> = {}): Promise<BackupResult> {
     const o = this.prepareOptions(url, options) as TO
     if (o.verboseLogging) {
       console.log(`Backing up [${o.id}] ${url}`)
@@ -80,7 +80,7 @@ export abstract class BaseSource<
       const existing = await o.checkExisting(this.key, o.id)
       if (existing !== undefined) {
         if (o.verboseLogging) {
-          console.log('Returning existing result')
+          console.log("Returning existing result")
         }
         return existing
       }
@@ -138,8 +138,8 @@ export abstract class BaseSource<
           return
         }
         const tag = getTagName(node)
-        if (tag === 'img' || tag === 'video') {
-          const src = node.getAttribute('src')
+        if (tag === "img" || tag === "video") {
+          const src = node.getAttribute("src")
           const d = getDownloadable(src, source)
           if (d === undefined) {
             return
@@ -150,22 +150,22 @@ export abstract class BaseSource<
             `${id}-inline-${i}`,
             fallback
           )
-          node.setAttribute('src', telegraphFile.path)
+          node.setAttribute("src", telegraphFile.path)
           return {
-            type: 'image',
+            type: "image",
             uploaded: telegraphFile.path,
           } as BackupFile
-        } else if (tag === 'a' && fallback !== undefined) {
-          const href = node.getAttribute('href')
+        } else if (tag === "a" && fallback !== undefined) {
+          const href = node.getAttribute("href")
           const d = getDownloadable(href, source)
           if (d === undefined) {
             return
           }
           const stream = await downloadFile(d, await options.getCookie(d))
           const uploaded = await fallback(stream as Readable, `${id}-inline-${i}`)
-          node.setAttribute('href', uploaded)
+          node.setAttribute("href", uploaded)
           return {
-            type: 'file',
+            type: "file",
             uploaded,
           } as BackupFile
         }
@@ -182,14 +182,14 @@ export abstract class BaseSource<
     return await Promise.all(
       raw.otherFiles.map(async (file, i) => {
         switch (file.type) {
-          case 'video':
+          case "video":
             if (!options.uploadVideos) {
               return file
             }
           // eslint-disable-next-line no-fallthrough
-          case 'auto':
+          case "auto":
           // eslint-disable-next-line no-fallthrough
-          case 'image':
+          case "image":
             if (file.download !== undefined) {
               try {
                 file.uploaded = (
@@ -202,12 +202,12 @@ export abstract class BaseSource<
               }
               delete file.download
             }
-            if (file.type === 'auto') {
+            if (file.type === "auto") {
               // TODO: detect type
-              file.type = isImageURL(file.uploaded) ? 'image' : 'file'
+              file.type = isImageURL(file.uploaded) ? "image" : "file"
             }
             break
-          case 'file':
+          case "file":
             if (fallback !== undefined && file.download !== undefined) {
               try {
                 file.uploaded = await fallback(await file.download(), `${raw.id}-${i}`)
@@ -232,15 +232,15 @@ export abstract class BaseSource<
   ): Promise<TelegraphPage[]> {
     const nodes = domToNodes(raw.parsedHTML, this.domToNodeHandler, options)
     if (result.reposted.length > 0) {
-      const repostedChildren: TelegraphContentNode[] = ['转发自：']
+      const repostedChildren: TelegraphContentNode[] = ["转发自："]
       nodes.unshift({
-        tag: 'p',
+        tag: "p",
         children: repostedChildren,
       })
       for (const each of result.reposted) {
         for (const page of each.pages) {
           repostedChildren.push({
-            tag: 'a',
+            tag: "a",
             attrs: { href: page.path },
             children: [page.title],
           })
@@ -249,55 +249,55 @@ export abstract class BaseSource<
     }
     if (raw.metaString !== undefined) {
       nodes.unshift({
-        tag: 'p',
+        tag: "p",
         children: [raw.metaString],
       })
     }
     nodes.unshift({
-      tag: 'p',
+      tag: "p",
       children: [
-        '原链接：',
+        "原链接：",
         {
-          tag: 'a',
+          tag: "a",
           attrs: { href: raw.source },
           children: [raw.source],
         },
       ],
     })
     nodes.unshift({
-      tag: 'p',
+      tag: "p",
       children: [
         `\n发表于：${dateToString(raw.createdAt)}`,
-        raw.updatedAt === undefined ? '' : `\n更新于：${dateToString(raw.updatedAt)}`,
+        raw.updatedAt === undefined ? "" : `\n更新于：${dateToString(raw.updatedAt)}`,
       ],
     })
     if (raw.otherFiles.length > 0) {
-      const attachedChildren: TelegraphContentNode[] = ['附件：']
-      nodes.push('\n')
+      const attachedChildren: TelegraphContentNode[] = ["附件："]
+      nodes.push("\n")
       nodes.push({
-        tag: 'div',
+        tag: "div",
         children: attachedChildren,
       })
       for (const attached of raw.otherFiles) {
         switch (attached.type) {
-          case 'file': {
+          case "file": {
             const href = attached.uploaded ?? attached.source
             attachedChildren.push({
-              tag: 'a',
+              tag: "a",
               attrs: { href },
               children: [href],
             })
             break
           }
-          case 'video':
+          case "video":
           // eslint-disable-next-line no-fallthrough
-          case 'image': {
+          case "image": {
             const src = attached.uploaded ?? attached.source
             attachedChildren.push({
-              tag: 'figure',
+              tag: "figure",
               children: [
                 {
-                  tag: attached.type === 'image' ? 'img' : 'video',
+                  tag: attached.type === "image" ? "img" : "video",
                   attrs: { src },
                 },
               ],
@@ -323,7 +323,7 @@ export abstract class BaseSource<
     options: TO
   ): BackupResult<TR> {
     let content = raw.parsedHTML.outerHTML
-    const text = raw.parsedHTML.structuredText.replace(/\n\s+\n/g, '\n')
+    const text = raw.parsedHTML.structuredText.replace(/\n\s+\n/g, "\n")
     const limit = options.textLengthLimit
     if (text.length > limit) {
       content = text.substr(0, options.textLengthLimit)

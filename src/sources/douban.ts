@@ -1,11 +1,11 @@
-import { HTMLElement } from 'node-html-parser'
+import { HTMLElement } from "node-html-parser"
 
-import { InvalidFormat } from '../errors.js'
-import { getInlines, parseHTML, querySelector, selectText, trimNode } from '../utils/html.js'
-import { fetchPage } from '../utils/request.js'
+import { InvalidFormat } from "../errors.js"
+import { getInlines, parseHTML, querySelector, selectText, trimNode } from "../utils/html.js"
+import { fetchPage } from "../utils/request.js"
 
-import { BaseSource } from './bases.js'
-import { BackupContent, BackupOptions } from './types.js'
+import { BaseSource } from "./bases.js"
+import { BackupContent, BackupOptions } from "./types.js"
 
 export type DoubanOptions = {
   // ...
@@ -15,14 +15,14 @@ export type DoubanData = {
   // ...
 }
 
-const DoubanURL = 'https://www.douban.com'
+const DoubanURL = "https://www.douban.com"
 const DoubanURLRegex = /^(https?:\/\/)?(.*?\.)?douban\.com\/.*$/i
 const DoubanPathRegex =
   /(people\/(?<userID>\d+)\/)?(?<key>(review)|(note)|(status)|(topic))\/(?<id>\d+)\/?$/
-type DoubanTypes = 'review' | 'note' | 'status' | 'topic'
+type DoubanTypes = "review" | "note" | "status" | "topic"
 
 export class Douban extends BaseSource<DoubanOptions, DoubanData> {
-  public readonly key = 'douban'
+  public readonly key = "douban"
 
   public testURL(url: string): string | undefined {
     if (!DoubanURLRegex.test(url)) {
@@ -46,10 +46,10 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
   }
 
   getStandardURL(id: string): string {
-    const [type, postID, userID] = id.split('-') as [DoubanTypes, string, string?]
-    if (type === 'status') {
+    const [type, postID, userID] = id.split("-") as [DoubanTypes, string, string?]
+    if (type === "status") {
       return `${DoubanURL}/people/${userID}/status/${postID}`
-    } else if (type === 'topic') {
+    } else if (type === "topic") {
       return `${DoubanURL}/group/topic/${postID}`
     }
     // review would be automatically redirected to their corresponding pages
@@ -58,16 +58,16 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
 
   getTypeName(urlOrid: string): string {
     const id = DoubanURLRegex.test(urlOrid) ? this.getID(urlOrid) : urlOrid
-    const type = id.split('-')[0] as DoubanTypes
+    const type = id.split("-")[0] as DoubanTypes
     switch (type) {
-      case 'review':
-        return '书评/影评'
-      case 'note':
-        return '日记'
-      case 'status':
-        return '广播'
-      case 'topic':
-        return '话题'
+      case "review":
+        return "书评/影评"
+      case "note":
+        return "日记"
+      case "status":
+        return "广播"
+      case "topic":
+        return "话题"
       default:
         throw new InvalidFormat(type)
     }
@@ -78,39 +78,39 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
       options.htmlFromBrowser ||
       (await (await fetchPage(url, options.getCookie, options.setCookie)).text())
     const htmlDOM = parseHTML(html)
-    const [type, id] = options.id.split('-') as [DoubanTypes, string]
+    const [type, id] = options.id.split("-") as [DoubanTypes, string]
     const title =
-      selectText(htmlDOM, '.note-header > h1', '.article > h1', '.content > h1') ||
+      selectText(htmlDOM, ".note-header > h1", ".article > h1", ".content > h1") ||
       `豆瓣存档 - ${id}`
     const authorNode = querySelector(
       htmlDOM,
-      '.note-author',
-      '.from > a',
-      '.lnk-people',
-      '.main-hd > a'
+      ".note-author",
+      ".from > a",
+      ".lnk-people",
+      ".main-hd > a"
     )
     if (authorNode === null) {
       throw new InvalidFormat(url)
     }
     const authorName = authorNode.text.trim()
-    const authorURL = authorNode.getAttribute('href')
-    const timeString = selectText(htmlDOM, '.pubtime', '.pub-date', '.create-time', '.main-meta')
+    const authorURL = authorNode.getAttribute("href")
+    const timeString = selectText(htmlDOM, ".pubtime", ".pub-date", ".create-time", ".main-meta")
     const createdAt =
-      timeString === null ? new Date() : new Date(Date.parse(timeString.trim() + '+0800'))
-    let metaString = ''
-    if (type === 'review') {
-      metaString += '评论 ' + selectText(htmlDOM, '.main-hd > a:last-of-type')
-      metaString += ' ' + querySelector(htmlDOM, '.main-title-rating')?.getAttribute('title')
-    } else if (type === 'topic') {
-      metaString += '小组：' + selectText(htmlDOM, '.bd .group-item .title')
+      timeString === null ? new Date() : new Date(Date.parse(timeString.trim() + "+0800"))
+    let metaString = ""
+    if (type === "review") {
+      metaString += "评论 " + selectText(htmlDOM, ".main-hd > a:last-of-type")
+      metaString += " " + querySelector(htmlDOM, ".main-title-rating")?.getAttribute("title")
+    } else if (type === "topic") {
+      metaString += "小组：" + selectText(htmlDOM, ".bd .group-item .title")
     }
     const articleDOM = querySelector(
       htmlDOM,
-      '#link-report',
-      '.note-content',
-      '.topic-content',
-      '.saying',
-      '.status-saying'
+      "#link-report",
+      ".note-content",
+      ".topic-content",
+      ".saying",
+      ".status-saying"
     )
     if (articleDOM === null) {
       throw new InvalidFormat(url)

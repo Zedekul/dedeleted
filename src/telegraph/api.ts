@@ -1,35 +1,35 @@
-import { Readable, Stream } from 'stream'
+import { Readable, Stream } from "stream"
 
-import FormData from 'form-data'
-import { v4 as uuid } from 'uuid'
+import FormData from "form-data"
+import { v4 as uuid } from "uuid"
 
-import { downloadFile, request } from '../utils/request.js'
-import { UploadFunction } from '../utils/types.js'
-import { CreateFailed, DedeletedError, UploadFailed } from '../errors.js'
+import { downloadFile, request } from "../utils/request.js"
+import { UploadFunction } from "../utils/types.js"
+import { CreateFailed, DedeletedError, UploadFailed } from "../errors.js"
 import {
   TelegraphAccount,
   TelegraphAccountInfo,
   TelegraphContentNode,
   TelegraphFile,
   TelegraphPage,
-} from './types.js'
+} from "./types.js"
 
-const TelegraphURL = 'https://telegra.ph'
-const TelegraphAPI = 'https://api.telegra.ph'
-const TelegraphUploadAPI = 'https://telegra.ph/upload'
+const TelegraphURL = "https://telegra.ph"
+const TelegraphAPI = "https://api.telegra.ph"
+const TelegraphUploadAPI = "https://telegra.ph/upload"
 
 export const createAccount = async (
   shortName: string,
-  authorName = '',
-  authorURL = ''
+  authorName = "",
+  authorURL = ""
 ): Promise<TelegraphAccount> => {
-  const response = await request(`${TelegraphAPI}/createAccount`, 'POST', undefined, {
+  const response = await request(`${TelegraphAPI}/createAccount`, "POST", undefined, {
     body: JSON.stringify({
       short_name: shortName,
       author_name: authorName,
       author_url: authorURL,
     }),
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   })
   const created = (await response.json()) as {
     ok: boolean
@@ -37,7 +37,7 @@ export const createAccount = async (
     result: TelegraphAccount & Partial<TelegraphAccountInfo>
   }
   if (created === undefined || !created.ok) {
-    throw new CreateFailed(created === undefined ? 'Telegraph account' : created.error)
+    throw new CreateFailed(created === undefined ? "Telegraph account" : created.error)
   }
   const account = created.result
   delete account.auth_url
@@ -46,12 +46,12 @@ export const createAccount = async (
 }
 
 export const getAccountInfo = async (token: string): Promise<TelegraphAccountInfo> => {
-  const response = await request(`${TelegraphAPI}/getAccountInfo`, 'POST', undefined, {
+  const response = await request(`${TelegraphAPI}/getAccountInfo`, "POST", undefined, {
     body: JSON.stringify({
       access_token: token,
-      fields: ['short_name', 'author_name', 'author_url', 'auth_url', 'page_count'],
+      fields: ["short_name", "author_name", "author_url", "auth_url", "page_count"],
     }),
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   })
   const data = (await response.json()) as {
     ok: boolean
@@ -59,14 +59,14 @@ export const getAccountInfo = async (token: string): Promise<TelegraphAccountInf
     result: TelegraphAccountInfo
   }
   if (data === undefined || !data.ok) {
-    throw new DedeletedError(data === undefined ? '' : data.error)
+    throw new DedeletedError(data === undefined ? "" : data.error)
   }
   return data.result
 }
 
 // Sorry for my hard-coded path.
 const getDefaultImage = (source: string): TelegraphFile => ({
-  id: 'deleted-weibo-image',
+  id: "deleted-weibo-image",
   path: `${TelegraphURL}/file/8294ffae080bc4534dddd.png`,
   source,
 })
@@ -98,14 +98,14 @@ export const uploadMediaFile = async (
   }
   const tphFile = {
     id,
-    path: '',
+    path: "",
     source,
   }
   const form = new FormData()
-  form.append('file', stream, {
+  form.append("file", stream, {
     filename: tphFile.id,
   })
-  const response = await request(TelegraphUploadAPI, 'POST', undefined, {
+  const response = await request(TelegraphUploadAPI, "POST", undefined, {
     body: form,
   })
   let uploaded = (await response.json()) as {
@@ -134,7 +134,7 @@ export const createPage = async (
   authorName?: string,
   authorURL?: string
 ): Promise<TelegraphPage> => {
-  const response = await request(`${TelegraphAPI}/createPage`, 'POST', undefined, {
+  const response = await request(`${TelegraphAPI}/createPage`, "POST", undefined, {
     body: JSON.stringify({
       access_token: account.access_token,
       title,
@@ -142,7 +142,7 @@ export const createPage = async (
       author_name: authorName ?? account.author_name,
       author_url: authorURL ?? account.author_url,
     }),
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
   })
   const created = (await response.json()) as {
     ok: boolean
@@ -150,7 +150,7 @@ export const createPage = async (
     result: TelegraphPage & { can_edit?: boolean }
   }
   if (created === undefined || !created.ok) {
-    throw new CreateFailed(created === undefined ? 'telegraph page' : created.error)
+    throw new CreateFailed(created === undefined ? "telegraph page" : created.error)
   }
   const page = created.result
   delete page.can_edit
