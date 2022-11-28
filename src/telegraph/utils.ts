@@ -49,8 +49,7 @@ export const domToNodes = <T = any>(
     if (tag === 'img' || tag === 'video') {
       const img = {
         tag,
-        attrs:
-          'src' in dom.attributes ? { src: dom.attributes.src } : undefined,
+        attrs: 'src' in dom.attributes ? { src: dom.attributes.src } : undefined,
       }
       nodes = [
         {
@@ -62,10 +61,7 @@ export const domToNodes = <T = any>(
       nodes = [
         {
           tag,
-          attrs:
-            'href' in dom.attributes
-              ? { href: dom.attributes.href }
-              : undefined,
+          attrs: 'href' in dom.attributes ? { href: dom.attributes.href } : undefined,
         },
       ]
     } else if (tag === 'script' || tag === 'style') {
@@ -83,9 +79,7 @@ export const domToNodes = <T = any>(
   return nodes
 }
 
-export const flattenNodes = (
-  arrayOfNodes: TelegraphContentNode[][]
-): TelegraphContentNode[] => {
+export const flattenNodes = (arrayOfNodes: TelegraphContentNode[][]): TelegraphContentNode[] => {
   return ([] as TelegraphContentNode[]).concat(...arrayOfNodes)
 }
 
@@ -113,13 +107,7 @@ export const createPages = async (
       // TODO
     }
     pages.push(
-      await createPage(
-        i === 0 ? title : title + (i + 1),
-        current,
-        account,
-        authorName,
-        authorURL
-      )
+      await createPage(i === 0 ? title : title + (i + 1), current, account, authorName, authorURL)
     )
     s = JSON.stringify(nodes)
     i += 1

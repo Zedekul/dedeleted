@@ -10,10 +10,7 @@ export interface BackupOptions {
   id: string
   sourceKey: string
   force: boolean
-  checkExisting: (
-    sourceKey: string,
-    id: string
-  ) => Promise<BackupResult | undefined>
+  checkExisting: (sourceKey: string, id: string) => Promise<BackupResult | undefined>
 
   getCookie: (url: string) => Promise<string | undefined>
   setCookie: (url: string, cookie: string) => Promise<void>

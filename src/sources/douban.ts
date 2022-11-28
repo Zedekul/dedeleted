@@ -1,13 +1,7 @@
 import { HTMLElement } from 'node-html-parser'
 
 import { InvalidFormat } from '../errors.js'
-import {
-  getInlines,
-  parseHTML,
-  querySelector,
-  selectText,
-  trimNode,
-} from '../utils/html.js'
+import { getInlines, parseHTML, querySelector, selectText, trimNode } from '../utils/html.js'
 import { fetchPage } from '../utils/request.js'
 
 import { BaseSource } from './bases.js'
@@ -52,11 +46,7 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
   }
 
   getStandardURL(id: string): string {
-    const [type, postID, userID] = id.split('-') as [
-      DoubanTypes,
-      string,
-      string?
-    ]
+    const [type, postID, userID] = id.split('-') as [DoubanTypes, string, string?]
     if (type === 'status') {
       return `${DoubanURL}/people/${userID}/status/${postID}`
     } else if (type === 'topic') {
@@ -83,24 +73,15 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
     }
   }
 
-  async backupInner(
-    url: string,
-    options: DoubanOptions
-  ): Promise<BackupContent<DoubanData>> {
+  async backupInner(url: string, options: DoubanOptions): Promise<BackupContent<DoubanData>> {
     const html =
       options.htmlFromBrowser ||
-      (await (
-        await fetchPage(url, options.getCookie, options.setCookie)
-      ).text())
+      (await (await fetchPage(url, options.getCookie, options.setCookie)).text())
     const htmlDOM = parseHTML(html)
     const [type, id] = options.id.split('-') as [DoubanTypes, string]
     const title =
-      selectText(
-        htmlDOM,
-        '.note-header > h1',
-        '.article > h1',
-        '.content > h1'
-      ) || `豆瓣存档 - ${id}`
+      selectText(htmlDOM, '.note-header > h1', '.article > h1', '.content > h1') ||
+      `豆瓣存档 - ${id}`
     const authorNode = querySelector(
       htmlDOM,
       '.note-author',
@@ -113,23 +94,13 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
     }
     const authorName = authorNode.text.trim()
     const authorURL = authorNode.getAttribute('href')
-    const timeString = selectText(
-      htmlDOM,
-      '.pubtime',
-      '.pub-date',
-      '.create-time',
-      '.main-meta'
-    )
+    const timeString = selectText(htmlDOM, '.pubtime', '.pub-date', '.create-time', '.main-meta')
     const createdAt =
-      timeString === null
-        ? new Date()
-        : new Date(Date.parse(timeString.trim() + '+0800'))
+      timeString === null ? new Date() : new Date(Date.parse(timeString.trim() + '+0800'))
     let metaString = ''
     if (type === 'review') {
       metaString += '评论 ' + selectText(htmlDOM, '.main-hd > a:last-of-type')
-      metaString +=
-        ' ' +
-        querySelector(htmlDOM, '.main-title-rating')?.getAttribute('title')
+      metaString += ' ' + querySelector(htmlDOM, '.main-title-rating')?.getAttribute('title')
     } else if (type === 'topic') {
       metaString += '小组：' + selectText(htmlDOM, '.bd .group-item .title')
     }

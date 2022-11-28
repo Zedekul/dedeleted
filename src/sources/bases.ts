@@ -5,28 +5,16 @@ import { HTMLElement } from 'node-html-parser'
 
 import { uploadMediaFile, uploadMediaFromSource } from '../telegraph/api.js'
 import { TelegraphContentNode, TelegraphPage } from '../telegraph/types.js'
-import {
-  createPages,
-  DefaultTelegraphAccount,
-  domToNodes,
-} from '../telegraph/utils.js'
+import { createPages, DefaultTelegraphAccount, domToNodes } from '../telegraph/utils.js'
 import { s3CreateUploadFunction } from '../utils/aws.js'
 import { dateToString, isImageURL, shallowCopy } from '../utils/common.js'
 import { getDownloadable, getTagName } from '../utils/html.js'
 import { downloadFile } from '../utils/request.js'
 import { UploadFunction } from '../utils/types.js'
 
-import {
-  BackupContent,
-  BackupFile,
-  BackupOptions,
-  BackupResult,
-  BackupSource,
-} from './types.js'
+import { BackupContent, BackupFile, BackupOptions, BackupResult, BackupSource } from './types.js'
 
-export const configOptions = <TO extends BackupOptions>(
-  options: Partial<TO>
-) => {
+export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) => {
   options = shallowCopy(options)
   return {
     set<TK extends keyof TO>(key: TK, defaultValue: TO[TK]) {
@@ -53,10 +41,7 @@ export abstract class BaseSource<
   public abstract readonly key: string
   public abstract testURL(url: string): string | undefined
 
-  protected prepareOptions<T extends BackupOptions>(
-    url: string,
-    options: Partial<T>
-  ): Partial<T> {
+  protected prepareOptions<T extends BackupOptions>(url: string, options: Partial<T>): Partial<T> {
     return configOptions(options)
       .setWith('id', () => this.getID(url))
       .set('sourceKey', this.key)
@@ -86,10 +71,7 @@ export abstract class BaseSource<
     return new URL(url)
   }
 
-  public async backup(
-    url = '',
-    options: Partial<TO> = {}
-  ): Promise<BackupResult> {
+  public async backup(url = '', options: Partial<TO> = {}): Promise<BackupResult> {
     const o = this.prepareOptions(url, options) as TO
     if (o.verboseLogging) {
       console.log(`Backing up [${o.id}] ${url}`)
@@ -107,13 +89,7 @@ export abstract class BaseSource<
     const fallback =
       s3 === null
         ? undefined
-        : s3CreateUploadFunction(
-            o.sourceKey,
-            s3.accessPoint,
-            s3.accountID,
-            s3.bucket,
-            s3.region
-          )
+        : s3CreateUploadFunction(o.sourceKey, s3.accessPoint, s3.accountID, s3.bucket, s3.region)
     if (!url) {
       url = this.getStandardURL(o.id)
     }
@@ -128,9 +104,7 @@ export abstract class BaseSource<
     fallback?: UploadFunction
   ): Promise<BackupResult<TR>> {
     const reposted = options.backupReposted
-      ? await Promise.all(
-          raw.reposted.map((x) => this.uploadContent(x, options, fallback))
-        )
+      ? await Promise.all(raw.reposted.map((x) => this.uploadContent(x, options, fallback)))
       : []
     let files = await this.uploadInlines(raw, options, fallback)
     files = files.concat(await this.uploadFiles(raw, options, fallback))
@@ -188,10 +162,7 @@ export abstract class BaseSource<
             return
           }
           const stream = await downloadFile(d, await options.getCookie(d))
-          const uploaded = await fallback(
-            stream as Readable,
-            `${id}-inline-${i}`
-          )
+          const uploaded = await fallback(stream as Readable, `${id}-inline-${i}`)
           node.setAttribute('href', uploaded)
           return {
             type: 'file',
@@ -222,12 +193,7 @@ export abstract class BaseSource<
             if (file.download !== undefined) {
               try {
                 file.uploaded = (
-                  await uploadMediaFile(
-                    file.source,
-                    file.download,
-                    `${raw.id}-${i}`,
-                    fallback
-                  )
+                  await uploadMediaFile(file.source, file.download, `${raw.id}-${i}`, fallback)
                 ).path
               } catch (e) {
                 if (!options.allowMissingContent) {
@@ -244,10 +210,7 @@ export abstract class BaseSource<
           case 'file':
             if (fallback !== undefined && file.download !== undefined) {
               try {
-                file.uploaded = await fallback(
-                  await file.download(),
-                  `${raw.id}-${i}`
-                )
+                file.uploaded = await fallback(await file.download(), `${raw.id}-${i}`)
               } catch (e) {
                 if (!options.allowMissingContent) {
                   throw e
@@ -305,9 +268,7 @@ export abstract class BaseSource<
       tag: 'p',
       children: [
         `\n发表于：${dateToString(raw.createdAt)}`,
-        raw.updatedAt === undefined
-          ? ''
-          : `\n更新于：${dateToString(raw.updatedAt)}`,
+        raw.updatedAt === undefined ? '' : `\n更新于：${dateToString(raw.updatedAt)}`,
       ],
     })
     if (raw.otherFiles.length > 0) {
@@ -374,10 +335,7 @@ export abstract class BaseSource<
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected domToNodeHandler(
-    dom: HTMLElement,
-    options?: TO
-  ): TelegraphContentNode[] | undefined {
+  protected domToNodeHandler(dom: HTMLElement, options?: TO): TelegraphContentNode[] | undefined {
     return undefined
   }
 

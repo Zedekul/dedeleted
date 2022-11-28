@@ -39,8 +39,7 @@ export class Other extends BaseSource<BackupOptions> {
       {
         type: 'auto',
         source: url,
-        download: async () =>
-          (await downloadFile(url, await options.getCookie(url))) as Readable,
+        download: async () => (await downloadFile(url, await options.getCookie(url))) as Readable,
       },
     ]
     const fileName = url.split('/').pop() || url

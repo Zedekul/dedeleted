@@ -23,28 +23,21 @@ export const createAccount = async (
   authorName = '',
   authorURL = ''
 ): Promise<TelegraphAccount> => {
-  const response = await request(
-    `${TelegraphAPI}/createAccount`,
-    'POST',
-    undefined,
-    {
-      body: JSON.stringify({
-        short_name: shortName,
-        author_name: authorName,
-        author_url: authorURL,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
+  const response = await request(`${TelegraphAPI}/createAccount`, 'POST', undefined, {
+    body: JSON.stringify({
+      short_name: shortName,
+      author_name: authorName,
+      author_url: authorURL,
+    }),
+    headers: { 'Content-Type': 'application/json' },
+  })
   const created = (await response.json()) as {
     ok: boolean
     error?: string
     result: TelegraphAccount & Partial<TelegraphAccountInfo>
   }
   if (created === undefined || !created.ok) {
-    throw new CreateFailed(
-      created === undefined ? 'Telegraph account' : created.error
-    )
+    throw new CreateFailed(created === undefined ? 'Telegraph account' : created.error)
   }
   const account = created.result
   delete account.auth_url
@@ -52,27 +45,14 @@ export const createAccount = async (
   return account
 }
 
-export const getAccountInfo = async (
-  token: string
-): Promise<TelegraphAccountInfo> => {
-  const response = await request(
-    `${TelegraphAPI}/getAccountInfo`,
-    'POST',
-    undefined,
-    {
-      body: JSON.stringify({
-        access_token: token,
-        fields: [
-          'short_name',
-          'author_name',
-          'author_url',
-          'auth_url',
-          'page_count',
-        ],
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
+export const getAccountInfo = async (token: string): Promise<TelegraphAccountInfo> => {
+  const response = await request(`${TelegraphAPI}/getAccountInfo`, 'POST', undefined, {
+    body: JSON.stringify({
+      access_token: token,
+      fields: ['short_name', 'author_name', 'author_url', 'auth_url', 'page_count'],
+    }),
+    headers: { 'Content-Type': 'application/json' },
+  })
   const data = (await response.json()) as {
     ok: boolean
     error?: string
@@ -154,30 +134,23 @@ export const createPage = async (
   authorName?: string,
   authorURL?: string
 ): Promise<TelegraphPage> => {
-  const response = await request(
-    `${TelegraphAPI}/createPage`,
-    'POST',
-    undefined,
-    {
-      body: JSON.stringify({
-        access_token: account.access_token,
-        title,
-        content,
-        author_name: authorName ?? account.author_name,
-        author_url: authorURL ?? account.author_url,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    }
-  )
+  const response = await request(`${TelegraphAPI}/createPage`, 'POST', undefined, {
+    body: JSON.stringify({
+      access_token: account.access_token,
+      title,
+      content,
+      author_name: authorName ?? account.author_name,
+      author_url: authorURL ?? account.author_url,
+    }),
+    headers: { 'Content-Type': 'application/json' },
+  })
   const created = (await response.json()) as {
     ok: boolean
     error?: string
     result: TelegraphPage & { can_edit?: boolean }
   }
   if (created === undefined || !created.ok) {
-    throw new CreateFailed(
-      created === undefined ? 'telegraph page' : created.error
-    )
+    throw new CreateFailed(created === undefined ? 'telegraph page' : created.error)
   }
   const page = created.result
   delete page.can_edit

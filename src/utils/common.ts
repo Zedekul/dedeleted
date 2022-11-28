@@ -19,5 +19,4 @@ export const isImageURL = (src?: string, base?: string): boolean => {
   }
 }
 
-export const sha256Hash = (str: string): string =>
-  createHash('sha256').update(str).digest('hex')
+export const sha256Hash = (str: string): string => createHash('sha256').update(str).digest('hex')

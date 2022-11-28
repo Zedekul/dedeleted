@@ -6,10 +6,7 @@ import fetch, { RequestInit, Response } from 'node-fetch'
 
 import { CannotAccess } from '../errors.js'
 
-export const downloadFile = (
-  source: string,
-  cookie?: string
-): Promise<Stream> =>
+export const downloadFile = (source: string, cookie?: string): Promise<Stream> =>
   new Promise((resolve, reject) => {
     const get = source.startsWith('https') ? https.get : http.get
     get(
@@ -67,7 +64,5 @@ export const fetchPage = async (
   setCookie: (url: string, cookie: string) => Promise<void>,
   options: RequestInit = {}
 ): Promise<Response> => {
-  return await request(url, 'GET', await getCookie(url), options, (c) =>
-    setCookie(url, c)
-  )
+  return await request(url, 'GET', await getCookie(url), options, (c) => setCookie(url, c))
 }

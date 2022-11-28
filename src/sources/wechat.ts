@@ -1,13 +1,7 @@
 import { HTMLElement } from 'node-html-parser'
 
 import { InvalidFormat } from '../errors.js'
-import {
-  getInlines,
-  getTagName,
-  parseHTML,
-  selectText,
-  trimNode,
-} from '../utils/html.js'
+import { getInlines, getTagName, parseHTML, selectText, trimNode } from '../utils/html.js'
 import { fetchPage } from '../utils/request.js'
 
 import { BaseSource } from './bases.js'
@@ -80,15 +74,10 @@ export class Wechat extends BaseSource<WechatOptions, WechatData> {
     }
   }
 
-  async backupInner(
-    url: string,
-    options: WechatOptions
-  ): Promise<BackupContent<WechatData>> {
+  async backupInner(url: string, options: WechatOptions): Promise<BackupContent<WechatData>> {
     const html =
       options.htmlFromBrowser ||
-      (await (
-        await fetchPage(url, options.getCookie, options.setCookie)
-      ).text())
+      (await (await fetchPage(url, options.getCookie, options.setCookie)).text())
     const htmlDOM = parseHTML(html)
     let content = htmlDOM.querySelector('#js_content')
     if (content === null) {
@@ -98,8 +87,7 @@ export class Wechat extends BaseSource<WechatOptions, WechatData> {
     const { id } = options
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_type, postID] = id.split('-') as [WechatTypes, string]
-    const title =
-      selectText(htmlDOM, '#activity-name') || `微信存档 - ${postID}`
+    const title = selectText(htmlDOM, '#activity-name') || `微信存档 - ${postID}`
     const authorName = selectText(htmlDOM, '#js_name') || '未知'
     const authorURL = '' // TODO
     const metaString = `公众号：${selectText(htmlDOM, '.rich_media_meta_text')}`

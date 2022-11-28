@@ -1,16 +1,10 @@
 import { parse, HTMLElement, Node, Options } from 'node-html-parser'
 
-export const parseHTML = (
-  html: string,
-  options: Partial<Options> = {}
-): HTMLElement => {
+export const parseHTML = (html: string, options: Partial<Options> = {}): HTMLElement => {
   return parse(html, options)
 }
 
-export const getDownloadable = (
-  url: string | undefined,
-  baseURL?: string
-): string | undefined => {
+export const getDownloadable = (url: string | undefined, baseURL?: string): string | undefined => {
   try {
     if (url !== undefined) {
       const u = new URL(url, baseURL)
@@ -42,10 +36,7 @@ export const getInlines = (
   return results
 }
 
-export const querySelector = (
-  dom: HTMLElement,
-  ...selectors: string[]
-): HTMLElement | null => {
+export const querySelector = (dom: HTMLElement, ...selectors: string[]): HTMLElement | null => {
   for (const s of selectors) {
     const t = dom.querySelector(s)
     if (t) {
@@ -55,10 +46,7 @@ export const querySelector = (
   return null
 }
 
-export const selectText = (
-  dom: HTMLElement,
-  ...selectors: string[]
-): string | null => {
+export const selectText = (dom: HTMLElement, ...selectors: string[]): string | null => {
   const t = querySelector(dom, ...selectors)
   return t ? t.text.trim() : null
 }
@@ -86,17 +74,13 @@ const isEmptyNode = (node: Node): boolean => {
 export const trimNode = (node: Node, recursive = true): Node | undefined => {
   if (node.nodeType === 3) {
     // Allow at most 1 empty line
-    node.textContent = node.textContent
-      .replace(/\n[^\S\n]+/g, '\n')
-      .replace(/\n\s*\n/g, '\n')
+    node.textContent = node.textContent.replace(/\n[^\S\n]+/g, '\n').replace(/\n\s*\n/g, '\n')
     return node
   }
   const dom = node as HTMLElement
   let children = dom.childNodes
   if (recursive) {
-    children = children
-      .map((x) => trimNode(x, true))
-      .filter((x) => x !== undefined) as Node[]
+    children = children.map((x) => trimNode(x, true)).filter((x) => x !== undefined) as Node[]
   }
   while (children.length > 0) {
     const s = children[children.length - 1]

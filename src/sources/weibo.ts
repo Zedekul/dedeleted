@@ -54,8 +54,7 @@ const WeiboURLRegex = /^(https?:\/\/)?(.*?\.)?weibo\.(com|cn)\/.*$/i
 const WeiboPathRegex = /(?<type>detail|status|\d+)\/(?<post_id>.+?)\/?$/
 type WeiboTypes = 'post' | 'article'
 
-const Base62Codes =
-  '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const Base62Codes = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const base62Encode = (x: number): string => {
   if (x === 0) {
     return Base62Codes[0]
@@ -141,10 +140,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
     }
   }
 
-  async backupInner(
-    url: string,
-    options: WeiboOptions
-  ): Promise<BackupContent<WeiboDetail>> {
+  async backupInner(url: string, options: WeiboOptions): Promise<BackupContent<WeiboDetail>> {
     if (options.htmlFromBrowser !== null) {
       return await this.backupFromBrowser(url, options)
     }
@@ -161,16 +157,12 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
     const authorURL = `${WeiboURL}/${weibo.user.id}`
     const title = `微博存档 - ${weibo.bid}`
     const createdAt = new Date(weibo.created_at)
-    const updatedAt =
-      weibo.edited_at === undefined ? undefined : new Date(weibo.edited_at)
+    const updatedAt = weibo.edited_at === undefined ? undefined : new Date(weibo.edited_at)
     const reposted = []
     if (options.backupReposted && weibo.retweeted_status !== undefined) {
       const repostedID = `post-${weibo.retweeted_status.bid}`
       try {
-        const repostedData = await this.backupInner(
-          '',
-          shallowCopy(options, { id: repostedID })
-        )
+        const repostedData = await this.backupInner('', shallowCopy(options, { id: repostedID }))
         reposted.push(repostedData)
       } catch {
         // ignore
@@ -194,10 +186,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
         type: 'video',
         source: videoURL,
         download: async () =>
-          (await downloadFile(
-            videoURL,
-            await options.getCookie(videoURL)
-          )) as Readable,
+          (await downloadFile(videoURL, await options.getCookie(videoURL))) as Readable,
       })
     }
     const parsedHTML = parseHTML(weibo.text)
@@ -215,13 +204,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
         if (getTagName(node) === 'a') {
           const href = node.getAttribute('href')
           if (href !== undefined && isImageURL(href, url)) {
-            const img = new HTMLElement(
-              'img',
-              {},
-              '',
-              node.parentNode,
-              [-1, -1]
-            )
+            const img = new HTMLElement('img', {}, '', node.parentNode, [-1, -1])
             img.setAttribute('src', href)
             node.replaceWith(img)
             return img
@@ -248,16 +231,9 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
     }
   }
 
-  async getWeibo(
-    postID: string,
-    options: BackupOptions
-  ): Promise<WeiboDetail | undefined> {
+  async getWeibo(postID: string, options: BackupOptions): Promise<WeiboDetail | undefined> {
     try {
-      const response = await fetchPage(
-        WeiboAPI + postID,
-        options.getCookie,
-        options.setCookie
-      )
+      const response = await fetchPage(WeiboAPI + postID, options.getCookie, options.setCookie)
       const data = (await response.json()) as unknown as {
         ok: number
         data?: WeiboDetail
@@ -269,10 +245,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  backupFromBrowser(
-    _url: string,
-    _options: WeiboOptions
-  ): Promise<BackupContent<WeiboDetail>> {
+  backupFromBrowser(_url: string, _options: WeiboOptions): Promise<BackupContent<WeiboDetail>> {
     // TODO
     throw new Error('Method not implemented.')
   }

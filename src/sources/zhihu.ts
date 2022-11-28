@@ -53,9 +53,7 @@ export class Zhihu extends BaseSource<ZhihuOptions, ZhihuData> {
 
   getStandardURL(id: string): string {
     const [type, postID] = id.split('-') as [ZhihuTypes, string]
-    return type === 'zhuanlan'
-      ? `${ZhihuZhuanlanURL}/p/${postID}`
-      : `${ZhihuURL}/${type}/${postID}`
+    return type === 'zhuanlan' ? `${ZhihuZhuanlanURL}/p/${postID}` : `${ZhihuURL}/${type}/${postID}`
   }
 
   getTypeName(urlOrid: string): string {
@@ -75,15 +73,10 @@ export class Zhihu extends BaseSource<ZhihuOptions, ZhihuData> {
     }
   }
 
-  async backupInner(
-    url: string,
-    options: ZhihuOptions
-  ): Promise<BackupContent<ZhihuData>> {
+  async backupInner(url: string, options: ZhihuOptions): Promise<BackupContent<ZhihuData>> {
     const html =
       options.htmlFromBrowser ||
-      (await (
-        await fetchPage(url, options.getCookie, options.setCookie)
-      ).text())
+      (await (await fetchPage(url, options.getCookie, options.setCookie)).text())
     const htmlDOM = parseHTML(html)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data: any
@@ -132,8 +125,7 @@ export class Zhihu extends BaseSource<ZhihuOptions, ZhihuData> {
       case 'zhuanlan':
         author = entity.author as ZhihuAuthor
         content = entity.content
-        title =
-          entity.title || `${entity.question.title} - ${author.name} 的回答`
+        title = entity.title || `${entity.question.title} - ${author.name} 的回答`
         break
       case 'pin':
         if (entity.content.length === 0) {
