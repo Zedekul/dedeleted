@@ -5,11 +5,11 @@ import { getInlines, parseHTML, querySelector, selectText, trimNode } from "../u
 import { fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
-import { BackupContent, BackupOptions } from "./types.js"
+import { BackupContent, BaseOptions } from "./types.js"
 
 export type DoubanOptions = {
   // ...
-} & BackupOptions
+} & BaseOptions
 
 export type DoubanData = {
   // ...

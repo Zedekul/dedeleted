@@ -12,9 +12,9 @@ import { getDownloadable, getTagName } from "../utils/html.js"
 import { downloadFile } from "../utils/request.js"
 import { UploadFunction } from "../utils/types.js"
 
-import { BackupContent, BackupFile, BackupOptions, BackupResult, BackupSource } from "./types.js"
+import { BackupContent, BackupFile, BaseOptions, BackupResult, BackupSource } from "./types.js"
 
-export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) => {
+export const configOptions = <TO extends BaseOptions>(options: Partial<TO>) => {
   options = shallowCopy(options)
   return {
     set<TK extends keyof TO>(key: TK, defaultValue: TO[TK]) {
@@ -33,15 +33,13 @@ export const configOptions = <TO extends BackupOptions>(options: Partial<TO>) =>
   }
 }
 
-export abstract class BaseSource<
-  TO extends BackupOptions = BackupOptions,
-  TR = Record<string, never>
-> implements BackupSource
+export abstract class BaseSource<TO extends BaseOptions = BaseOptions, TR = Record<string, never>>
+  implements BackupSource
 {
   public abstract readonly key: string
   public abstract testURL(url: string): string | undefined
 
-  protected prepareOptions<T extends BackupOptions>(url: string, options: Partial<T>): Partial<T> {
+  protected prepareOptions<T extends BaseOptions>(url: string, options: Partial<T>): Partial<T> {
     return configOptions(options)
       .setWith("id", () => this.getID(url))
       .set("sourceKey", this.key)
@@ -61,7 +59,7 @@ export abstract class BaseSource<
       .set("backupReposted", true)
       .set("htmlFromBrowser", null)
       .set("verboseLogging", false)
-      .done() as BackupOptions & Partial<T>
+      .done() as BaseOptions & Partial<T>
   }
 
   protected getURL(url: string, protocol = "https"): URL {

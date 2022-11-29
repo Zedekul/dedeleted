@@ -6,10 +6,10 @@ import { createHTMLElement, getInlines, parseHTML, selectText, trimNode } from "
 import { downloadFile, fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
-import { BackupContent, BackupFile, BackupOptions } from "./types.js"
+import { BackupContent, BackupFile, BaseOptions } from "./types.js"
 
 // Fallback type for all unsupported sources
-export class Other extends BaseSource<BackupOptions> {
+export class Other extends BaseSource<BaseOptions> {
   public readonly key = "other"
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -32,7 +32,7 @@ export class Other extends BaseSource<BackupOptions> {
 
   async backupBinary(
     url: string,
-    options: BackupOptions
+    options: BaseOptions
   ): Promise<BackupContent<Record<string, never>>> {
     const { id } = options
     const otherFiles: BackupFile[] = [
@@ -58,7 +58,7 @@ export class Other extends BaseSource<BackupOptions> {
 
   async backupInner(
     url: string,
-    options: BackupOptions
+    options: BaseOptions
   ): Promise<BackupContent<Record<string, never>>> {
     let html = options.htmlFromBrowser || undefined
     const response = await fetchPage(url, options.getCookie, options.setCookie)

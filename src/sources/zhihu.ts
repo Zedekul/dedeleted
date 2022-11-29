@@ -5,11 +5,11 @@ import { getInlines, getTagName, parseHTML } from "../utils/html.js"
 import { fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
-import { BackupContent, BackupOptions } from "./types.js"
+import { BackupContent, BaseOptions } from "./types.js"
 
 export type ZhihuOptions = {
   // ...
-} & BackupOptions
+} & BaseOptions
 
 export type ZhihuAuthor = {
   name?: string

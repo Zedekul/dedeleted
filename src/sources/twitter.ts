@@ -6,14 +6,14 @@ import { shallowCopy } from "../utils/common.js"
 import { createHTMLElement } from "../utils/html.js"
 import { request } from "../utils/request.js"
 import { BaseSource } from "./bases.js"
-import { BackupContent, BackupFile, BackupOptions } from "./types.js"
+import { BackupContent, BackupFile, BaseOptions } from "./types.js"
 
 export type TwitterOptions = {
-  twitterAPIBearerToken: string
+  twitterBearerToken: string
   tweetQueryParameters?: Record<string, string>
   maxDepth: number
   // ...
-} & BackupOptions
+} & BaseOptions
 
 export type TwitterData = {
   // ...
@@ -143,14 +143,14 @@ export class Twitter extends BaseSource<TwitterOptions, TwitterData> {
     options: TwitterOptions,
     depth = 0
   ): Promise<BackupContent<TwitterData>> {
-    const { id, twitterAPIBearerToken, tweetQueryParameters, maxDepth } = options
-    if (twitterAPIBearerToken === undefined) {
+    const { id, twitterBearerToken, tweetQueryParameters, maxDepth } = options
+    if (twitterBearerToken === undefined) {
       throw new ConfigError("未提供 Twitter API Bearer Token")
     }
     const [tweetID] = id.split("-", 2)
     const { data: tweet, includes } = await this.getTweet(
       tweetID,
-      twitterAPIBearerToken,
+      twitterBearerToken,
       tweetQueryParameters
     )
     depth += 1

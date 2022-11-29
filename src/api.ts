@@ -1,4 +1,5 @@
-import { BackupOptions, BackupResult } from "./sources/types.js"
+import { BackupResult } from "./sources/types.js"
+import { BaseSource } from "./sources/bases.js"
 
 import { Douban } from "./sources/douban.js"
 import { Zhihu } from "./sources/zhihu.js"
@@ -29,9 +30,12 @@ export const sources = {
   other,
 }
 
-export const backup = <T extends BackupOptions = BackupOptions>(
+type extractOptions<T> = T extends BaseSource<infer O> ? O : never
+export type BackupOptions = extractOptions<typeof sources[keyof typeof sources]>
+
+export const backup = (
   url: string,
-  options: Partial<T> = {}
+  options: Partial<BackupOptions> = {}
 ): Promise<BackupResult | undefined> => {
   const sourceKey = options.sourceKey
   if (sourceKey !== undefined && sourceKey in sources) {

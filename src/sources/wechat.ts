@@ -5,11 +5,11 @@ import { getInlines, getTagName, parseHTML, selectText, trimNode } from "../util
 import { fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
-import { BackupContent, BackupOptions } from "./types.js"
+import { BackupContent, BaseOptions } from "./types.js"
 
 export type WechatOptions = {
   // ...
-} & BackupOptions
+} & BaseOptions
 
 export type WechatData = Record<string, never>
 

@@ -6,7 +6,7 @@ import { TelegraphAccount, TelegraphPage } from "../telegraph/types.js"
 import { AWSS3Settings } from "../utils/aws.js"
 
 // Some of the options may not work if force=false, since result was cached.
-export interface BackupOptions {
+export interface BaseOptions {
   id: string
   sourceKey: string
   force: boolean
@@ -80,5 +80,5 @@ export interface BackupResult<T = any> {
 export interface BackupSource {
   key: string
   testURL(url: string): string | undefined
-  backup(url: string, options?: Partial<BackupOptions>): Promise<BackupResult>
+  backup(url: string, options?: Partial<BaseOptions>): Promise<BackupResult>
 }

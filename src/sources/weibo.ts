@@ -9,12 +9,12 @@ import { createHTMLElement, parseHTML } from "../utils/html.js"
 import { downloadFile, fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
-import { BackupContent, BackupFile, BackupOptions } from "./types.js"
+import { BackupContent, BackupFile, BaseOptions } from "./types.js"
 import { getInlines, getTagName } from "../utils/html.js"
 
 export type WeiboOptions = {
   // ...
-} & BackupOptions
+} & BaseOptions
 
 export type WeiboUser = {
   id: number
@@ -231,7 +231,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
     }
   }
 
-  async getWeibo(postID: string, options: BackupOptions): Promise<WeiboDetail | undefined> {
+  async getWeibo(postID: string, options: BaseOptions): Promise<WeiboDetail | undefined> {
     try {
       const response = await fetchPage(WeiboAPI + postID, options.getCookie, options.setCookie)
       const data = (await response.json()) as unknown as {
