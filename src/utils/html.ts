@@ -1,8 +1,23 @@
 import { parse, HTMLElement, Node, Options } from "node-html-parser"
 
-export const parseHTML = (html: string, options: Partial<Options> = {}): HTMLElement => {
-  return parse(html, options)
-}
+export const createHTMLElement = (
+  tagName: string,
+  {
+    keyAttrs,
+    rawAttrs,
+    parentNode,
+    range,
+  }: {
+    keyAttrs?: Record<string, string>
+    rawAttrs?: string
+    parentNode?: HTMLElement | null
+    range?: [number, number]
+  } = {}
+): HTMLElement =>
+  new HTMLElement(tagName, keyAttrs || {}, rawAttrs || "", parentNode || null, range || [-1, -1])
+
+export const parseHTML = (html: string, options: Partial<Options> = {}): HTMLElement =>
+  parse(html, options)
 
 export const getDownloadable = (url: string | undefined, baseURL?: string): string | undefined => {
   try {
