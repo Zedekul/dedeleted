@@ -31,7 +31,7 @@ export const downloadFile = (source: string, cookie?: string): Promise<Stream> =
 export type MethodType = "GET" | "POST" | "PUT" | "DELETE"
 
 export const request = async (
-  url: string,
+  url: string | URL,
   method: MethodType,
   cookie?: string,
   options: RequestInit = {},
@@ -49,7 +49,7 @@ export const request = async (
     headers["user-agent"] =
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36 Edg/98.0.1108.43"
   }
-  const response = await fetch(url, options)
+  const response = await fetch(url.toString(), options)
   if (setCookie !== undefined) {
     for (const each of response.headers.raw()["set-cookie"] || []) {
       await setCookie(each)

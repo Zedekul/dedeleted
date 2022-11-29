@@ -81,11 +81,14 @@ export const uploadMediaFromSource = (
 
 export const uploadMediaFile = async (
   source: string,
-  download: () => Promise<Stream | undefined>,
+  download: (() => Promise<Stream | undefined>) | true,
   id: string = uuid(),
   fallback?: UploadFunction
 ): Promise<TelegraphFile> => {
-  let stream
+  let stream: Stream | undefined
+  if (typeof download !== "function") {
+    download = () => downloadFile(source)
+  }
   try {
     stream = await download()
   } catch (e) {

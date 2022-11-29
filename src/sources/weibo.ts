@@ -5,7 +5,7 @@ import { HTMLElement } from "node-html-parser"
 
 import { CannotAccess, InvalidFormat } from "../errors.js"
 import { isImageURL, shallowCopy } from "../utils/common.js"
-import { parseHTML } from "../utils/html.js"
+import { createHTMLElement, parseHTML } from "../utils/html.js"
 import { downloadFile, fetchPage } from "../utils/request.js"
 
 import { BaseSource } from "./bases.js"
@@ -165,7 +165,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
         const repostedData = await this.backupInner("", shallowCopy(options, { id: repostedID }))
         reposted.push(repostedData)
       } catch {
-        // ignore
+        // ignored
       }
     }
     const pictures: BackupFile[] =
@@ -204,7 +204,7 @@ export class Weibo extends BaseSource<WeiboOptions, WeiboDetail> {
         if (getTagName(node) === "a") {
           const href = node.getAttribute("href")
           if (href !== undefined && isImageURL(href, url)) {
-            const img = new HTMLElement("img", {}, "", node.parentNode, [-1, -1])
+            const img = createHTMLElement("img", { parentNode: node.parentNode })
             img.setAttribute("src", href)
             node.replaceWith(img)
             return img

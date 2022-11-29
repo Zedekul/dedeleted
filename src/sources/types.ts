@@ -39,8 +39,9 @@ export type BackupFileType = "image" | "video" | "file" | "auto"
 export interface BackupFile {
   type: BackupFileType
   source: string
+  previewImageURL?: string
   uploaded?: string
-  download?: () => Promise<Readable>
+  download?: (() => Promise<Readable>) | true
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

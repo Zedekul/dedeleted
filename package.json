@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "watch": "tsc -p tsconfig.json -w",
+    "dev": "tsc -p tsconfig.json -w",
     "lint": "eslint . --ext .ts",
     "prepare": "husky install"
   },
@@ -39,7 +39,6 @@
     "form-data": "^4.0.0",
     "node-fetch": "^3.3.0",
     "node-html-parser": "^6.1.4",
-    "twitter-api-sdk": "^1.2.1",
     "uuid": "^9.0.0"
   }
 }

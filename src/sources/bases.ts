@@ -210,7 +210,11 @@ export abstract class BaseSource<
           case "file":
             if (fallback !== undefined && file.download !== undefined) {
               try {
-                file.uploaded = await fallback(await file.download(), `${raw.id}-${i}`)
+                const s =
+                  typeof file.download === "function"
+                    ? await file.download()
+                    : ((await downloadFile(file.source)) as Readable)
+                file.uploaded = await fallback(s, `${raw.id}-${i}`)
               } catch (e) {
                 if (!options.allowMissingContent) {
                   throw e
@@ -326,7 +330,7 @@ export abstract class BaseSource<
     const text = raw.parsedHTML.structuredText.replace(/\n\s+\n/g, "\n")
     const limit = options.textLengthLimit
     if (text.length > limit) {
-      content = text.substr(0, options.textLengthLimit)
+      content = text.substring(0, options.textLengthLimit)
     } else if (options.plainText) {
       content = text
     }

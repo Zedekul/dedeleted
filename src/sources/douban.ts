@@ -129,7 +129,7 @@ export class Douban extends BaseSource<DoubanOptions, DoubanData> {
       authorURL,
       metaString,
       createdAt,
-      source: url,
+      source: this.getStandardURL(options.id),
       parsedHTML,
       inlineNodes,
       otherFiles: [],
